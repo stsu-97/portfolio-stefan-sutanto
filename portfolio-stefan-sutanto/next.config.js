@@ -12,7 +12,6 @@ const nextConfig = {
   },
   basePath: '/portfolio-stefan-sutanto',
   assetPrefix: '/portfolio-stefan-sutanto',
-  trailingSlash: true,
 }
 
 module.exports = nextConfig
