@@ -2,11 +2,14 @@
   "name": "portfolio-stefan-sutanto",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://stsu-97.github.io/portfolio-stefan-sutanto",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build",
+    "deploy": "npm run export && gh-pages -d out -b main"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -29,6 +32,7 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^8",
     "eslint-config-next": "14.2.18",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

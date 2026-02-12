@@ -1029,891 +1029,6 @@ classDiagram
 `,
   },
   {
-    slug: "diabetes-prediction",
-    title: "Diabetes Prediction ML Competition",
-    description:
-      "Kaggle competition entry for diabetes prediction using ensemble methods. Implemented CatBoost and LightGBM models with feature engineering, achieving competitive AUC scores.",
-    techStack: ["Python", "CatBoost", "LightGBM", "scikit-learn", "Pandas"],
-    domain: "ML/Data Science",
-    date: "2024-12",
-    status: "completed",
-    github: "https://github.com/stefansutanto/kaggle-diabetes",
-    summary: `
-# Diabetes Prediction
-
-## Overview
-Machine learning competition entry for predicting diabetes risk based on health indicators. Used ensemble methods combining CatBoost and LightGBM with extensive feature engineering.
-
-## Approach
-- Feature engineering: Created interaction features (age_bmi, bmi_waist_ratio, hdl_to_ldl)
-- Binned features for non-linear relationships
-- 5-fold stratified cross-validation
-- Ensemble: Weighted blend of CatBoost and LightGBM
-- Meta-learner: LogisticRegression on base model predictions
-
-## Results
-- LightGBM OOF AUC: 0.7260
-- CatBoost OOF AUC: 0.7261
-- Weighted Ensemble OOF AUC: 0.7261
-- Meta-learner OOF AUC: 0.7261
-
-## Technical Highlights
-- Robust cross-validation strategy
-- Careful handling of categorical features
-- Feature importance analysis
-- Model persistence and reproducibility
-    `,
-    brsContent: `# Business Requirements Specification: Diabetes Prediction System
-
-## 1. Executive Summary
-
-### Business Problem
-Diabetes mellitus is a chronic metabolic disorder affecting over 400 million people worldwide. Early detection and intervention can significantly reduce complications and healthcare costs. However, current screening methods require invasive blood tests and specialist consultations, creating barriers to widespread screening.
-
-### Stakeholders
-- **Primary Users**: Healthcare providers, medical practitioners
-- **Secondary Users**: Researchers, epidemiologists, public health officials
-- **Technical Stakeholders**: Data scientists, ML engineers, healthcare IT teams
-
-### Success Criteria
-- Achieve ROC-AUC score of > 0.72 on held-out test data
-- Identify top 5 most predictive risk factors
-- Provide interpretable predictions with feature importance
-- Support both individual and batch predictions
-- Model inference time under 100ms per record
-
-## 2. Business Context
-
-### Domain Analysis
-**Diabetes Screening Landscape**:
-- Traditional diagnosis: Fasting plasma glucose, HbA1c blood tests
-- Barriers: Cost, accessibility, patient discomfort
-- Opportunity: Non-invasive risk assessment using demographic and lifestyle data
-
-**Kaggle Competition Context**:
-- Playground Series S5E12: Binary classification challenge
-- Target: Predict diabetes diagnosis from patient features
-- Metric: Area Under ROC Curve (AUC-ROC)
-- Training data: ~100,000 patient records with 25+ features
-
-### Market/Industry Background
-**Global Diabetes Market**:
-- 537 million adults living with diabetes (2021)
-- Projected to reach 643 million by 2030
-- Annual healthcare cost: $966 billion
-- Undiagnosed cases: ~50%
-
-**ML in Healthcare**:
-- Growing adoption of predictive models for disease screening
-- Regulatory focus on model interpretability and fairness
-- Shift from black-box models to explainable AI
-
-## 3. Functional Requirements
-
-### 3.1 Data Ingestion & Processing
-
-#### FR-001: Data Loading
-**Description**: System shall load and combine training and test datasets.
-
-**Data Sources**:
-- \`train.csv\` - Labeled patient records (~100K rows)
-- \`test.csv\` - Unabeled patient records for prediction
-- \`sample_submission.csv\` - Submission format template
-
-**Acceptance Criteria**:
-- Successfully merge train and test datasets
-- Handle missing values appropriately
-- Preserve row alignment between features and target
-
-#### FR-002: Feature Engineering
-**Description**: System shall generate domain-relevant features to improve model performance.
-
-**Engineered Features**:
-| Feature | Formula | Rationale |
-|---------|---------|-----------|
-| age_bmi | age × bmi | Combined metabolic risk factor |
-| bmi_waist_ratio | bmi × waist_to_hip_ratio | Obesity severity indicator |
-| hdl_to_ldl | hdl_cholesterol / ldl_cholesterol | Cholesterol balance ratio |
-| triglycerides_bin | pd.cut(triglycerides, bins) | Categorical risk grouping |
-| bmi_bin | pd.cut(bmi, bins) | WHO obesity categories |
-
-**Acceptance Criteria**:
-- Feature values calculated without errors
-- No data leakage (fit on train, transform on test)
-- Binning follows clinical guidelines
-
-### 3.2 Model Training
-
-#### FR-003: Ensemble Model Training
-**Description**: System shall train multiple gradient boosting models and combine predictions.
-
-**Models**:
-1. **LightGBM Classifier**
-   - 2000 iterations with early stopping
-   - Learning rate: 0.02
-   - 5-fold stratified cross-validation
-
-2. **CatBoost Classifier**
-   - 2000 iterations with early stopping
-   - Learning rate: 0.03
-   - Depth: 6
-   - Native categorical feature handling
-
-**Acceptance Criteria**:
-- OOF AUC-ROC > 0.72
-- Prediction variance across folds < 0.02
-- Models serialize to disk successfully
-
-#### FR-004: Cross-Validation
-**Description**: System shall implement stratified k-fold cross-validation to prevent overfitting.
-
-**Parameters**:
-- K = 5 folds
-- Stratified sampling (maintain class balance)
-- Random state = 42 (reproducibility)
-
-**Acceptance Criteria**:
-- Each fold trains to convergence
-- No significant performance degradation across folds
-- Final OOF score representative of test performance
-
-### 3.3 Ensemble Strategy
-
-#### FR-005: Model Blending
-**Description**: System shall combine base model predictions using weighted averaging and meta-learning.
-
-**Ensemble Methods**:
-1. **Weighted Average**: Optimize weight for CatBoost vs LightGBM
-2. **Logistic Regression Meta-Model**: Learn optimal combination
-
-**Acceptance Criteria**:
-- Ensemble AUC > best single model AUC
-- Weight optimization completed (0-1 range)
-- Meta-model converges successfully
-
-### 3.4 Prediction & Export
-
-#### FR-006: Test Set Prediction
-**Description**: System shall generate predictions for the test dataset.
-
-**Process**:
-1. Load trained models from disk
-2. Generate predictions for test set
-3. Apply ensemble weights
-4. Export to submission CSV format
-
-**Acceptance Criteria**:
-- Predictions in range [0, 1]
-- All test IDs included in submission
-- Format matches sample_submission.csv
-
-#### FR-007: Model Persistence
-**Description**: System shall save all trained models and metadata.
-
-**Artifacts**:
-- \`models/lgb_folds.joblib\` - LightGBM fold models
-- \`models/cb_folds.joblib\` - CatBoost fold models
-- \`models/meta_lr.joblib\` - Logistic meta-learner
-- \`models/features_order.json\` - Feature column order
-- \`models/ensemble_weights.json\` - Optimal weights
-
-**Acceptance Criteria**:
-- All files saved to \`models/\` directory
-- Models can be loaded and used for inference
-- JSON files valid and parseable
-
-## 4. Non-Functional Requirements
-
-### 4.1 Performance Requirements
-- **Training Time**: Complete 5-fold CV in under 30 minutes
-- **Inference Time**: < 100ms per prediction
-- **Memory Usage**: < 4GB during training
-- **File Size**: Model artifacts < 100MB
-
-### 4.2 Data Quality Requirements
-- **Missing Values**: Median imputation for numeric, mode for categorical
-- **Outliers**: No removal (retained for model robustness)
-- **Data Types**: Proper typing (numeric, categorical, datetime)
-
-### 4.3 Model Performance Requirements
-- **ROC-AUC**: > 0.72 on validation set
-- **Calibration**: Brier score < 0.20
-- **Stability**: CV std < 0.02 across folds
-
-### 4.4 Reproducibility Requirements
-- **Random Seeds**: All stochastic operations seeded (RND=42)
-- **Environment**: Documented dependency versions
-- **Code**: Version controlled with clear commits
-
-### 4.5 Interpretability Requirements
-- **Feature Importance**: SHAP values or gain importance
-- **Prediction Explanation**: Top contributing features
-- **Documentation**: Clear feature descriptions
-
-## 5. Data Requirements
-
-### 5.1 Data Dictionary
-
-#### Demographic Features
-| Column | Type | Description | Missing |
-|--------|------|-------------|---------|
-| age | Numeric | Patient age in years | No |
-| gender | Categorical | Male, Female | No |
-| ethnicity | Categorical | White, Hispanic, Black, Asian, Other | No |
-| education_level | Categorical | No formal, Highschool, Graduate, Postgraduate | No |
-| income_level | Categorical | Low, Lower-Middle, Middle, Upper-Middle, High | No |
-| employment_status | Categorical | Employed, Unemployed, Retired, Student | No |
-
-#### Lifestyle Features
-| Column | Type | Description | Missing |
-|--------|------|-------------|---------|
-| alcohol_consumption_per_week | Numeric | Drinks per week (0-5) | No |
-| physical_activity_minutes_per_week | Numeric | Weekly exercise minutes | No |
-| diet_score | Numeric | Diet quality (0-10) | No |
-| sleep_hours_per_day | Numeric | Average daily sleep | No |
-| screen_time_hours_per_day | Numeric | Daily screen exposure | No |
-| smoking_status | Categorical | Never, Former, Current | No |
-
-#### Health Indicators
-| Column | Type | Description | Missing |
-|--------|------|-------------|---------|
-| bmi | Numeric | Body Mass Index | No |
-| waist_to_hip_ratio | Numeric | Waist / Hip circumference | No |
-| systolic_bp | Numeric | Systolic blood pressure | No |
-| diastolic_bp | Numeric | Diastolic blood pressure | No |
-| heart_rate | Numeric | Resting heart rate | No |
-
-#### Lab Values
-| Column | Type | Description | Missing |
-|--------|------|-------------|---------|
-| cholesterol_total | Numeric | Total cholesterol (mg/dL) | No |
-| hdl_cholesterol | Numeric | HDL (good cholesterol) | No |
-| ldl_cholesterol | Numeric | LDL (bad cholesterol) | No |
-| triglycerides | Numeric | Triglycerides (mg/dL) | No |
-
-#### Medical History
-| Column | Type | Description | Missing |
-|--------|------|-------------|---------|
-| family_history_diabetes | Binary | Family history (0/1) | No |
-| hypertension_history | Binary | Hypertension diagnosis (0/1) | No |
-| cardiovascular_history | Binary | CVD diagnosis (0/1) | No |
-
-#### Target Variable
-| Column | Type | Description | Missing |
-|--------|------|-------------|---------|
-| diagnosed_diabetes | Binary | Diabetes diagnosis (0/1) | No |
-
-### 5.2 Data Relationships
-
-\`\`\`mermaid
-graph LR
-    Demographic[Demographic Factors] --> Risk[Diabetes Risk]
-    Lifestyle[Lifestyle Factors] --> Risk
-    Clinical[Clinical Measurements] --> Risk
-    Lab[Laboratory Values] --> Risk
-    History[Medical History] --> Risk
-
-    Risk --> Target[Diabetes Diagnosis]
-\`\`\`
-
-## 6. Integration Requirements
-
-### 6.1 Model Deployment (Future)
-- **REST API**: Flask/FastAPI endpoint for predictions
-- **Batch Processing**: Support bulk prediction uploads
-- **Cloud Deployment**: AWS SageMaker or GCP AI Platform
-
-### 6.2 Third-Party Integrations (Future)
-- **EHR Systems**: HL7 FHIR compatibility
-- **Lab Systems**: Automatic lab result imports
-- **Patient Portals**: Risk score display
-
-## 7. Constraints & Assumptions
-
-### 7.1 Technical Constraints
-- **Language**: Python 3.8+
-- **Frameworks**: Scikit-learn, LightGBM, CatBoost
-- **Competition**: Kaggle submission deadline (completed)
-
-### 7.2 Data Constraints
-- **Synthetic Data**: Dataset is synthetically generated
-- **Imbalanced Classes**: Must use stratified sampling
-- **Missing Values**: Moderate (~5-10% in some features)
-
-### 7.3 Assumptions
-- Data represents real-world distributions
-- Features are independent conditional on target
-- No significant concept drift in production
-
-## 8. Risk Analysis
-
-### 8.1 Identified Risks
-
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Overfitting to competition data | Medium | High | Cross-validation, regularization |
-| Feature leakage | Low | Critical | Careful feature engineering |
-| Poor generalization to real data | High | High | Domain adaptation techniques |
-| Model interpretability issues | Medium | Medium | SHAP analysis |
-| Computational resource limits | Low | Medium | Cloud computing options |
-
-### 8.2 Mitigation Strategies
-- **Overfitting**: Aggressive early stopping, dropout, regularization
-- **Feature Leakage**: Feature importance review, clinical validation
-- **Generalization**: Test on external validation set
-- **Interpretability**: SHAP values, feature documentation
-
-## 9. Testing Strategy
-
-### 9.1 Model Testing
-
-#### Validation Strategy
-| Test Type | Description | Success Criteria |
-|-----------|-------------|------------------|
-| K-Fold CV | 5-fold stratified CV | OOF AUC > 0.72 |
-| Holdout Test | 20% held from training | Test AUC within 0.02 of CV |
-| Calibration | Reliability diagram | Brier score < 0.20 |
-
-#### Performance Metrics
-- **Primary**: ROC-AUC (Area Under ROC Curve)
-- **Secondary**: Log Loss, Accuracy, F1-Score, Precision, Recall
-
-### 9.2 Acceptance Criteria
-- OOF AUC-ROC >= 0.72
-- Model trains without errors
-- All predictions in valid range
-- Submission format matches requirements
-- Code is reproducible with documented dependencies
-
----
-
-**Document Version**: 1.0
-**Last Updated**: December 2024
-**Author**: Stefan Sutanto
-**Status**: Kaggle Competition Completed
-`,
-    archContent: `# Architecture Document: Diabetes Prediction System
-
-## 1. System Overview
-
-The Diabetes Prediction System is a machine learning pipeline designed to predict diabetes diagnosis from patient demographic, lifestyle, and clinical data. The system follows a batch-oriented ML architecture with model training, ensemble learning, and prediction generation.
-
-\`\`\`mermaid
-graph TB
-    subgraph "Data Layer"
-        TRAIN[train.csv<br/>100K records]
-        TEST[test.csv<br/>~50K records]
-        SSUB[sample_submission.csv]
-    end
-
-    subgraph "Processing Layer"
-        LOAD[Data Loader]
-        FEAT[Feature Engineering]
-        IMP[Imputation<br/>Median/Mode]
-        SPLIT[Train/Test Split]
-    end
-
-    subgraph "Model Layer"
-        CV[Stratified 5-Fold CV]
-        LGB[LightGBM<br/>2000 iterations]
-        CB[CatBoost<br/>2000 iterations]
-    end
-
-    subgraph "Ensemble Layer"
-        WOPT[Weight Optimization<br/>CatBoost w=0.3]
-        META[Logistic Meta-Learner]
-    end
-
-    subgraph "Output Layer"
-        PRED[Final Predictions]
-        SUB[submission_ensemble_weighted.csv]
-        METAOUT[submission_meta.csv]
-    end
-
-    TRAIN --> LOAD
-    TEST --> LOAD
-    LOAD --> FEAT
-    FEAT --> IMP
-    IMP --> SPLIT
-    SPLIT --> CV
-    CV --> LGB
-    CV --> CB
-    LGB --> WOPT
-    CB --> WOPT
-    LGB --> META
-    CB --> META
-    WOPT --> PRED
-    META --> METAOUT
-    PRED --> SUB
-\`\`\`
-
-## 2. Component Architecture
-
-### 2.1 Jupyter Notebook Structure
-
-The system is implemented as a single Jupyter notebook (\`diabetes_model.ipynb\`) with logical cell blocks:
-
-\`\`\`
-diabetes_model.ipynb
-├── Cell 1: Initialization & Imports
-├── Cell 2: Data Loading & Initial Processing
-├── Cell 3: Feature Engineering
-├── Cell 4: Train/Test Split
-├── Cell 5: Label Encoding (for LightGBM)
-├── Cell 6: LightGBM Training (5-Fold CV)
-├── Cell 7: CatBoost Training (5-Fold CV)
-├── Cell 8: Weight Optimization & Ensemble
-├── Cell 9: Meta-Learning Ensemble
-└── Cell 10: Model Persistence
-\`\`\`
-
-### 2.2 Core Components
-
-| Component | Responsibility | Key Functions |
-|------------|----------------|---------------|
-| **DataLoader** | Load and combine datasets | pd.concat, reset_index |
-| **FeatureEngineer** | Create derived features | age_bmi, bmi_waist_ratio, bins |
-| **Preprocessor** | Handle missing values | median/mode imputation |
-| **ModelTrainer** | Train base learners | LGBMClassifier, CatBoostClassifier |
-| **EnsembleBuilder** | Combine predictions | Weighted avg, LogisticRegression |
-| **ModelSerializer** | Persist models | joblib.dump, .save_model |
-
-## 3. Data Architecture
-
-### 3.1 Data Pipeline
-
-\`\`\`mermaid
-flowchart LR
-    subgraph Input
-        T[train.csv]
-        V[test.csv]
-    end
-
-    subgraph Processing
-        M1[Merge<br/>full = concat train+test]
-        M2[Feature Engineering<br/>age_bmi, ratios, bins]
-        M3[Imputation<br/>median/mode]
-    end
-
-    subgraph Models
-        L1[LightGBM<br/>Label Encoded]
-        C1[CatBoost<br/>Native Cat Features]
-    end
-
-    subgraph Output
-        E1[OOF Predictions]
-        E2[Test Predictions]
-    end
-
-    T --> M1
-    V --> M1
-    M1 --> M2
-    M2 --> M3
-    M3 --> L1
-    M3 --> C1
-    L1 --> E1
-    C1 --> E1
-    L1 --> E2
-    C1 --> E2
-\`\`\`
-
-### 3.2 Feature Engineering Pipeline
-
-\`\`\`mermaid
-graph TD
-    subgraph "Raw Features"
-        AGE[age]
-        BMI[bmi]
-        WHR[waist_to_hip_ratio]
-        HDL[hdl_cholesterol]
-        LDL[ldl_cholesterol]
-        TG[triglycerides]
-        BMI_R[bmi raw]
-        TG_R[triglycerides raw]
-    end
-
-    subgraph "Engineered Features"
-        AB[age_bmi]
-        BWR[bmi_waist_ratio]
-        HL[hdl_to_ldl]
-        TGB[triglycerides_bin]
-        BB[bmi_bin]
-    end
-
-    AGE -->|multiply| AB
-    BMI -->|multiply| AB
-    BMI -->|multiply| BWR
-    WHR -->|multiply| BWR
-    HDL -->|divide| HL
-    LDL -->|divide| HL
-    TG_R -->|pd.cut| TGB
-    BMI_R -->|pd.cut| BB
-
-    subgraph "Binning Ranges"
-        TG_B[0-100, 100-150,<br/>150-200, 200+]
-        BMI_B[<18.5, 18.5-25,<br/>25-30, 30-35, 35+]
-    end
-
-    TG_R --> TG_B
-    BMI_R --> BMI_B
-\`\`\`
-
-### 3.3 Data Schema
-
-#### Feature Categories
-\`\`\`mermaid
-mindmap
-    root((Features))
-        Demographic
-            age
-            gender
-            ethnicity
-            education_level
-            income_level
-            employment_status
-        Lifestyle
-            alcohol_consumption_per_week
-            physical_activity_minutes_per_week
-            diet_score
-            sleep_hours_per_day
-            screen_time_hours_per_day
-            smoking_status
-        Clinical
-            bmi
-            waist_to_hip_ratio
-            systolic_bp
-            diastolic_bp
-            heart_rate
-        Laboratory
-            cholesterol_total
-            hdl_cholesterol
-            ldl_cholesterol
-            triglycerides
-        Medical_Hx
-            family_history_diabetes
-            hypertension_history
-            cardiovascular_history
-        Engineered
-            age_bmi
-            bmi_waist_ratio
-            hdl_to_ldl
-            triglycerides_bin
-            bmi_bin
-\`\`\`
-
-## 4. API Design
-
-### 4.1 Model Architecture
-
-#### LightGBM Model
-\`\`\`python
-LGBMClassifier(
-    n_estimators=2000,
-    learning_rate=0.02,
-    num_leaves=31,
-    subsample=0.9,
-    colsample_bytree=0.9,
-    random_state=42
-)
-\`\`\`
-
-**Configuration Rationale**:
-- \`n_estimators=2000\`: High iteration count for better convergence
-- \`learning_rate=0.02\`: Low learning rate requires more iterations but improves generalization
-- \`num_leaves=31\`: Controls model complexity
-- \`subsample=0.9\`: Stochastic gradient boosting for regularization
-
-#### CatBoost Model
-\`\`\`python
-CatBoostClassifier(
-    iterations=2000,
-    learning_rate=0.03,
-    depth=6,
-    loss_function="Logloss",
-    eval_metric="AUC",
-    random_seed=42,
-    od_type="Iter",
-    od_wait=200
-)
-\`\`\`
-
-**Configuration Rationale**:
-- \`depth=6\`: Prevents overfitting on small datasets
-- \`od_wait=200\`: Overfitting detector with 200 iteration patience
-- Native categorical handling: No manual encoding required
-
-### 4.2 Model Inference
-
-\`\`\`mermaid
-sequenceDiagram
-    actor User
-    participant Notebook
-    participant Models
-    participant Data
-
-    User->>Notebook: Load trained models
-    Notebook->>Models: joblib.load(lgb_folds)
-    Notebook->>Models: joblib.load(cb_folds)
-    User->>Notebook: Process test data
-    Notebook->>Data: Apply feature engineering
-    Data-->>Notebook: Processed features
-    Notebook->>Models: predict_proba(X_test)
-    Models-->>Notebook: Fold predictions
-    Notebook->>Notebook: Average predictions
-    Notebook->>Notebook: Apply ensemble weights
-    Notebook-->>User: Final predictions
-\`\`\`
-
-## 5. Technology Stack Rationale
-
-| Technology | Version | Justification |
-|------------|----------|--------------|
-| **Python** | 3.8+ | ML ecosystem standard |
-| **Jupyter** | Latest | Iterative development, visualization |
-| **LightGBM** | Latest | Fast training, good accuracy |
-| **CatBoost** | Latest | Native categorical handling |
-| **scikit-learn** | Latest | CV, metrics, preprocessing |
-| **pandas** | Latest | Data manipulation |
-| **numpy** | Latest | Numerical operations |
-
-### Why LightGBM + CatBoost Ensemble?
-
-| Aspect | LightGBM | CatBoost |
-|--------|----------|----------|
-| Training Speed | Very fast | Fast |
-| Categorical Features | Requires encoding | Native support |
-| Overfitting Resistance | Good | Excellent |
-| Interpretability | Good | Good |
-| Complementarity | Histogram-based | Ordered boosting |
-
-**Ensemble Benefit**: Diverse algorithms capture different patterns, improving robustness and AUC score.
-
-## 6. Deployment Architecture
-
-### 6.1 Development Environment
-
-\`\`\`mermaid
-graph LR
-    NB[Jupyter Notebook] --> PY[Python 3.8+]
-    PY --> LGB[LightGBM]
-    PY --> CB[CatBoost]
-    PY --> SK[scikit-learn]
-    PY --> PD[pandas]
-    NB --> FS[File System]
-    FS --> MODELS[models/ directory]
-    FS --> DATA[CSV files]
-\`\`\`
-
-### 6.2 Model Artifacts
-
-\`\`\`
-models/
-├── lgb_folds.joblib              # 5 LightGBM fold models
-├── cb_folds.joblib               # 5 CatBoost fold models
-├── meta_lr.joblib                # Logistic meta-learner
-├── features_order.json           # Feature column order
-└── ensemble_weights.json         # Optimal ensemble weights
-    {
-        "catboost_weight": 0.3,
-        "oof_auc": 0.7261
-    }
-\`\`\`
-
-### 6.3 Production Deployment (Future)
-
-\`\`\`mermaid
-graph TB
-    subgraph "API Layer"
-        API[REST API /predict]
-    end
-
-    subgraph "Model Serving"
-        LGBS[LightGBM Server]
-        CBS[CatBoost Server]
-        META[Meta-Learner]
-    end
-
-    subgraph "Preprocessing"
-        PREP[Feature Engineering<br/>Imputation]
-    end
-
-    API --> PREP
-    PREP --> LGBS
-    PREP --> CBS
-    LGBS --> META
-    CBS --> META
-    META --> API
-\`\`\`
-
-## 7. Security & Privacy Considerations
-
-### 7.1 Data Privacy
-- **HIPAA Compliance**: Required for production deployment
-- **De-identification**: Remove direct identifiers
-- **Encryption**: Data at rest and in transit
-
-### 7.2 Model Security
-- **Adversarial Attacks**: Validate input ranges
-- **Model Theft**: Model obfuscation techniques
-- **Audit Logging**: Track predictions and access
-
-## 8. Scalability & Performance
-
-### 8.1 Performance Metrics
-
-| Metric | Value | Notes |
-|--------|-------|-------|
-| Training Time | ~15-20 min | 5-fold CV for both models |
-| Inference Time | < 100ms | Per record |
-| Memory Usage | ~2GB | During training |
-| Model Size | ~50MB | All fold models |
-
-### 8.2 Scalability Considerations
-
-| Scenario | Strategy |
-|----------|----------|
-| Larger datasets | Dask for distributed computing |
-| Real-time predictions | Model serving with ONNX |
-| Batch predictions | Spark ML integration |
-| Multi-model serving | Kubernetes with GPU nodes |
-
-## 9. Diagrams
-
-### 9.1 Training Pipeline Flowchart
-
-\`\`\`mermaid
-flowchart TD
-    START([Start]) --> LOAD[Load train.csv, test.csv]
-    LOAD --> COMBINE[pd.concat train+test]
-    COMBINE --> FEAT1[Create age_bmi, bmi_waist_ratio]
-    FEAT1 --> FEAT2[Create hdl_to_ldl]
-    FEAT2 --> FEAT3[Bin triglycerides, bmi]
-    FEAT3 --> IMP[Impute missing values]
-    IMP --> SPLIT[Split back to train/test]
-    SPLIT --> CVINIT[Initialize 5-Fold CV]
-    CVINIT --> LGBLOOP[For each fold:]
-    LGBLOOP --> LGBTRAIN[Train LightGBM]
-    LGBTRAIN --> LGBPRED[Predict on validation]
-    LGBPRED --> LGBNEXT{More folds?}
-    LGBNEXT -->|Yes| LGBLOOP
-    LGBNEXT -->|No| CBNEXT[Train CatBoost folds]
-    CBNEXT --> CBLOOP[For each fold:]
-    CBLOOP --> CBTRAIN[Train CatBoost]
-    CBTRAIN --> CBPRED[Predict on validation]
-    CBPRED --> CBNEXT{More folds?}
-    CBNEXT -->|Yes| CBLOOP
-    CBNEXT -->|No| ENS[Create Ensemble]
-    ENS --> WOPT[Optimize weights]
-    WOPT --> META[Train meta-learner]
-    META --> PRED[Generate test predictions]
-    PRED --> SAVE[Save submission files]
-    SAVE --> SAVE2[Save models]
-    SAVE2 --> END([End])
-\`\`\`
-
-### 9.2 Cross-Validation Schema
-
-\`\`\`mermaid
-graph LR
-    subgraph Fold1
-        F1T[Train 80%]
-        F1V[Valid 20%]
-    end
-    subgraph Fold2
-        F2T[Train 80%]
-        F2V[Valid 20%]
-    end
-    subgraph Fold3
-        F3T[Train 80%]
-        F3V[Valid 20%]
-    end
-    subgraph Fold4
-        F4T[Train 80%]
-        F4V[Valid 20%]
-    end
-    subgraph Fold5
-        F5T[Train 80%]
-        F5V[Valid 20%]
-    end
-
-    style F1V fill:#f9f,stroke:#333,stroke-width:2px
-    style F2V fill:#f9f,stroke:#333,stroke-width:2px
-    style F3V fill:#f9f,stroke:#333,stroke-width:2px
-    style F4V fill:#f9f,stroke:#333,stroke-width:2px
-    style F5V fill:#f9f,stroke:#333,stroke-width:2px
-\`\`\`
-
-### 9.3 Ensemble Architecture
-
-\`\`\`mermaid
-graph TB
-    subgraph Input
-        X[Test Data X]
-    end
-
-    subgraph Base_Models
-        L1[LGB Fold 1]
-        L2[LGB Fold 2]
-        L3[LGB Fold 3]
-        L4[LGB Fold 4]
-        L5[LGB Fold 5]
-
-        C1[CB Fold 1]
-        C2[CB Fold 2]
-        C3[CB Fold 3]
-        C4[CB Fold 4]
-        C5[CB Fold 5]
-    end
-
-    subgraph Aggregation
-        LAVG[Average LGB]
-        CAVG[Average CB]
-    end
-
-    subgraph Ensemble
-        W1[Weight 0.7 LGB]
-        W2[Weight 0.3 CB]
-        META_LR[Logistic Meta-Learner]
-    end
-
-    subgraph Output
-        YW[Weighted Prediction]
-        YM[Meta Prediction]
-    end
-
-    X --> L1 & L2 & L3 & L4 & L5
-    X --> C1 & C2 & C3 & C4 & C5
-    L1 & L2 & L3 & L4 & L5 --> LAVG
-    C1 & C2 & C3 & C4 & C5 --> CAVG
-    LAVG --> W1
-    CAVG --> W2
-    W1 --> YW
-    W2 --> YW
-    LAVG --> META_LR
-    CAVG --> META_LR
-    META_LR --> YM
-\`\`\`
-
-### 9.4 Model Performance Comparison
-
-\`\`\`mermaid
-xychart-beta
-    title "Model Performance - OOF AUC"
-    x-axis ["LightGBM", "CatBoost", "Weighted Ens.", "Meta-Learner"]
-    y-axis "AUC Score" 0.7 --> 0.73
-    bar [0.7260, 0.7248, 0.7261, 0.7261]
-    line [0.7260, 0.7248, 0.7261, 0.7261]
-\`\`\`
-
----
-
-**Document Version**: 1.0
-**Last Updated**: December 2024
-**Author**: Stefan Sutanto
-**Status**: Kaggle Competition Completed
-`,
-  },
-  {
     slug: "spaceship-titanic",
     title: "Spaceship Titanic",
     description:
@@ -3607,37 +2722,1020 @@ graph LR
   },
   {
     slug: "diabetes-prediction-app",
-    title: "Diabetes Prediction Web App",
+    title: "Diabetes Risk Assessment Web App",
     description:
-      "Interactive web application for predicting diabetes risk using trained ML models. Features a 29-parameter input form with real-time predictions and risk assessment visualization.",
+      "A production web application providing accessible diabetes risk assessment using trained machine learning models. The application serves as a practical tool for individuals to understand their health indicators and diabetes risk factors.",
     techStack: ["Python", "Streamlit", "scikit-learn", "Joblib"],
-    domain: "ML/Web App",
-    date: "2025-02",
+    domain: "Web Application",
+    date: "2025-02-12",
     status: "completed",
     liveDemo: "http://localhost:8501",
     summary: `
-# Diabetes Prediction Web App
+# Diabetes Risk Assessment Web App
 
 ## Overview
-A user-friendly web application built with Streamlit that provides real-time diabetes risk predictions using a trained ensemble meta-learner model (Logistic Regression combining CatBoost and LightGBM).
+A production web application providing accessible diabetes risk assessment using trained machine learning models. The application serves as a practical tool for individuals to understand their health indicators and diabetes risk factors.
 
 ## Key Features
-- 📋 29-parameter input form covering demographics, lifestyle, and clinical indicators
-- 🔮 Real-time predictions using trained ensemble model
-- 📊 Visual risk assessment with color-coded probability gauge
+- 📋 29-parameter input form matching model features
+- 🔮 Real-time risk prediction using ensemble meta-learner
+- 📊 Visual probability gauge with color-coded risk levels
 - 🔍 Key contributing factors explanation
-- ⚠️ Medical disclaimer and educational context
+- 📱 Fully responsive web interface
 
 ## Technical Highlights
-- **Framework:** Streamlit for rapid ML app development
-- **Model:** Meta-learner ensemble (AUC: 0.726)
-- **Features:** Age-BMI interaction, cholesterol ratios, binning for non-linear relationships
-- **Risk Levels:** Low (<30%), Moderate (30-50%), High (50-70%), Very High (>70%)
-- **Categorical Encoding:** Handles unseen categories gracefully
+- **Framework:** Streamlit for rapid web application development
+- **Model:** Ensemble meta-learner (Logistic Regression)
+- **Performance:** AUC 0.726 on validation data
+- **Categorical Encoding:** Robust handling of unseen categories
+- **Risk Stratification:** Four-tier system (Low/Moderate/High/Very High)
+
+## User Value
+- Simplifies complex health data into actionable insights
+- Provides educational context about diabetes risk factors
+- Medical disclaimer ensures appropriate use
+- Accessible via web browser - no installation required
+    `,
+  },
+  {
+    slug: "ledger-bookkeeping",
+    title: "Ledger Bookkeeping System",
+    description:
+      "A professional double-entry bookkeeping system featuring chart of accounts management, journal entries, and comprehensive financial reporting including trial balance, balance sheet, and income statement.",
+    techStack: ["FastAPI", "React", "TypeScript", "SQLAlchemy", "SQLite"],
+    domain: "Full Stack",
+    date: "2025-01",
+    status: "completed",
+    github: "https://github.com/stefansutanto/ledger-bookkeeping",
+    summary: `
+# Ledger Bookkeeping System
+
+## Overview
+A professional double-entry bookkeeping system designed for small businesses, featuring comprehensive financial management capabilities including chart of accounts, journal entries, and automated financial reporting.
+
+## Key Features
+- 📊 Chart of Accounts - Complete account management with type classification
+- 💼 Journal Entries - Double-entry system with automatic balance validation
+- 📈 Financial Reports - Trial Balance, Balance Sheet, and Income Statement
+- 🎯 Account Types - Asset, Liability, Equity, Revenue, and Expense categories
+- 📱 Dashboard - Real-time overview of financial metrics
+
+## Technical Highlights
+- RESTful API with FastAPI backend
+- Type-safe React frontend with TypeScript
+- SQLAlchemy ORM for database abstraction
+- Automatic balance validation for journal entries
+- SQLite database with PostgreSQL upgrade path
 
 ## Achievement
-Successfully deployed a fully functional ML prediction web app with proper feature engineering pipeline, categorical encoding handling, and interpretable risk output for end users.
+Successfully implemented a complete bookkeeping system with proper double-entry validation and comprehensive financial reporting.
     `,
+    brsContent: `# Business Requirements Specification: Ledger Bookkeeping System
+
+## 1. Executive Summary
+
+### Business Problem
+Small businesses and freelancers need affordable, easy-to-use bookkeeping software that maintains proper double-entry accounting standards without the complexity and cost of enterprise solutions.
+
+### Stakeholders
+- **Primary Users**: Small business owners, freelance accountants, bookkeepers
+- **Secondary Users**: Financial controllers, business consultants
+- **Technical Stakeholders**: Development team, system administrators
+
+### Success Criteria
+- Enable users to create and manage chart of accounts
+- Support double-entry journal entry validation (debits = credits)
+- Generate accurate financial statements (Trial Balance, Balance Sheet, Income Statement)
+- Provide real-time dashboard of financial position
+- Maintain data integrity with proper account relationships
+
+## 2. Business Context
+
+### Domain Analysis
+The small business accounting software market is underserved by:
+- **Enterprise solutions**: Too expensive ($50-200/month) and complex
+- **Spreadsheet solutions**: Error-prone, lack validation, no automation
+- **Simple expense trackers**: Lack proper double-entry bookkeeping
+
+### Key Features Required
+1. Chart of Accounts Management
+2. Journal Entry Creation with Validation
+3. Financial Statement Generation
+4. Real-time Financial Overview
+
+## 3. Functional Requirements
+
+### FR-001: Chart of Accounts Management
+**Description**: System shall allow users to create, read, update, and delete accounts with proper classification.
+
+**Account Types**:
+- Asset (Cash, Accounts Receivable, Inventory)
+- Liability (Accounts Payable, Loans)
+- Equity (Owner's Equity, Retained Earnings)
+- Revenue (Sales, Service Income)
+- Expense (Rent, Utilities, Salaries)
+
+**Acceptance Criteria**:
+- Unique account codes within each type
+- Hierarchical account structure
+- Balance tracking for each account
+
+### FR-002: Journal Entry Management
+**Description**: System shall facilitate creation of double-entry journal entries with automatic validation.
+
+**Validation Rules**:
+- Total debits must equal total credits
+- Each entry must have at least two accounts
+- Entry date must be within accounting period
+- Accounts must be active
+
+**Acceptance Criteria**:
+- Prevent imbalanced journal entries
+- Provide clear error messages for validation failures
+- Support multi-line entries
+- Automatic timestamp and audit trail
+
+### FR-003: Financial Reporting
+**Description**: System shall generate standard financial reports based on journal entries.
+
+**Reports**:
+1. Trial Balance - List of all account balances
+2. Balance Sheet - Financial position at a point in time
+3. Income Statement - Profitability over a period
+
+**Acceptance Criteria**:
+- Reports generated on-demand
+- Accurate calculations based on journal entries
+- Support for date range filtering
+- Export to PDF capability
+
+### FR-004: Dashboard
+**Description**: System shall provide real-time overview of key financial metrics.
+
+**Metrics Displayed**:
+- Total Assets
+- Total Liabilities
+- Current Revenue (MTD, YTD)
+- Current Expenses (MTD, YTD)
+- Net Income
+
+**Acceptance Criteria**:
+- Real-time updates with each journal entry
+- Visual representation with charts
+- Drill-down capability to view details
+
+## 4. Non-Functional Requirements
+
+### NFR-001: Performance
+- Dashboard load time < 2 seconds
+- Financial report generation < 5 seconds
+- Support up to 10,000 journal entries
+
+### NFR-002: Usability
+- Intuitive user interface
+- Clear error messages
+- Context-sensitive help
+
+### NFR-003: Data Integrity
+- ACID compliance for transactions
+- Audit trail for all entries
+- Automatic backups
+
+## 5. Technical Architecture
+
+### System Architecture
+\`\`\`mermaid
+graph TB
+    subgraph "Frontend"
+        UI[React UI]
+        API_CLIENT[API Client]
+    end
+
+    subgraph "Backend"
+        ROUTES[API Routes]
+        SERVICES[Business Logic]
+        MODELS[Data Models]
+    end
+
+    subgraph "Database"
+        DB[(SQLite DB)]
+    end
+
+    UI --> API_CLIENT
+    API_CLIENT --> ROUTES
+    ROUTES --> SERVICES
+    SERVICES --> MODELS
+    MODELS --> DB
+\`\`\`
+
+### Technology Stack
+- **Frontend**: React 18, TypeScript, Vite
+- **Backend**: FastAPI, Python 3.11+
+- **Database**: SQLite (production: PostgreSQL)
+- **ORM**: SQLAlchemy
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Development Complete
+`,
+  },
+  {
+    slug: "invoicing-expense-tracker",
+    title: "Invoicing and Expense Tracker",
+    description:
+      "A comprehensive business management system featuring invoice creation, expense tracking, vendor bill management, and contact databases. Includes payment tracking, transaction management, and financial dashboard with real-time analytics.",
+    techStack: ["FastAPI", "React", "TypeScript", "SQLAlchemy", "PostgreSQL", "Recharts"],
+    domain: "Full Stack",
+    date: "2025-01",
+    status: "completed",
+    github: "https://github.com/stefansutanto/invoicing-expense-tracker",
+    summary: `
+# Invoicing and Expense Tracker
+
+## Overview
+A comprehensive business management solution designed for small to medium enterprises, providing essential tools for invoice management, expense tracking, and financial oversight through an intuitive web interface.
+
+## Key Features
+- 📄 Invoice Management - Create, track, and manage customer invoices
+- 💰 Expense Tracking - Record and categorize business expenses
+- 📋 Bills Management - Manage vendor bills and payment schedules
+- 👥 Contact Database - Maintain customer and vendor information
+- 📊 Analytics Dashboard - Visual insights into business finances
+- 💳 Payment Tracking - Monitor accounts receivable and payable
+
+## Technical Highlights
+- RESTful API architecture with FastAPI
+- Type-safe React frontend with TypeScript
+- Interactive data visualizations with Recharts
+- Multiple transaction types (invoice, expense, payment, bill)
+- Status workflow management (draft, sent, paid, overdue)
+- Multi-currency support capability
+
+## User Value
+- Streamlines billing and collection processes
+- Improves cash flow management with payment tracking
+- Centralizes business financial data
+- Provides actionable insights through dashboard analytics
+- Reduces manual bookkeeping effort
+    `,
+    brsContent: `# Business Requirements Specification: Invoicing and Expense Tracker
+
+## 1. Executive Summary
+
+### Business Problem
+Small businesses struggle with fragmented financial management processes, using multiple tools or spreadsheets to manage invoices, expenses, and vendor relationships, leading to errors, delayed payments, and poor cash flow visibility.
+
+### Stakeholders
+- **Primary Users**: Small business owners, finance managers, accountants
+- **Secondary Users**: Sales teams, procurement staff, business consultants
+- **Technical Stakeholders**: Development team, system administrators
+
+### Success Criteria
+- Streamline invoice creation and delivery process
+- Improve expense tracking and categorization
+- Centralize customer and vendor information
+- Provide real-time visibility into cash flow
+- Reduce administrative overhead by 40%
+
+## 2. Business Context
+
+### Domain Analysis
+Small business financial management challenges:
+- **Manual Processes**: Paper-based or spreadsheet tracking is error-prone
+- **Fragmented Tools**: Using separate systems for invoices, expenses, contacts
+- **Cash Flow Gaps**: Poor visibility into receivables and payables
+- **Scalability Issues**: Processes break down as transaction volume grows
+
+### Market Opportunity
+Target market includes:
+- Small businesses (1-50 employees)
+- Freelancers and consultants
+- Service-based businesses
+- E-commerce sellers
+
+## 3. Functional Requirements
+
+### FR-001: Invoice Management
+**Description**: System shall enable creation, delivery, and tracking of customer invoices.
+
+**Features**:
+- Customizable invoice templates
+- Line item details (description, quantity, unit price)
+- Automatic calculations (subtotal, tax, total)
+- Payment terms management (Net 15, Net 30, etc.)
+- Invoice status tracking (draft, sent, paid, overdue)
+- Recurring invoice capability
+
+**Use Case**: Create and Send Invoice
+1. User selects "New Invoice"
+2. System displays invoice form
+3. User selects or creates customer contact
+4. User enters line items
+5. System calculates totals automatically
+6. User sets payment terms
+7. User saves and sends invoice
+8. System generates unique invoice number
+9. System updates customer balance
+
+**Acceptance Criteria**:
+- Invoice number format: INV-{YYMM}-{Unique ID}
+- Support for multiple line items
+- Automatic tax calculations
+- Email delivery option
+- PDF export capability
+- Payment status tracking
+
+### FR-002: Expense Management
+**Description**: System shall facilitate recording, categorizing, and tracking business expenses.
+
+**Features**:
+- Expense categorization (Office, Travel, Marketing, etc.)
+- Receipt attachment (future enhancement)
+- Employee expense submission
+- Approval workflow
+- Expense reporting and analytics
+- Tax deduction tracking
+
+**Use Case**: Record Business Expense
+1. User accesses expense form
+2. User selects expense category
+3. User enters amount and description
+4. User optionally attaches receipt
+5. User submits expense
+6. System records with unique number
+7. System updates expense reports
+
+**Acceptance Criteria**:
+- Expense categories match tax requirements
+- Receipt attachment support
+- Approval workflow for expenses above threshold
+- Date range filtering for reports
+
+### FR-003: Bills Management
+**Description**: System shall manage vendor bills and payment schedules.
+
+**Features**:
+- Vendor bill recording
+- Due date tracking
+- Payment scheduling
+- Partial payment support
+- Vendor balance tracking
+- Payment history
+
+**Acceptance Criteria**:
+- Bill number format: BILL-{YYMM}-{Unique ID}
+- Due date reminders
+- Aging reports
+- Multiple payment methods
+
+### FR-004: Contact Management
+**Description**: System shall maintain customer and vendor databases.
+
+**Contact Types**:
+- Customer (invoicing)
+- Vendor (bills)
+- Both (customer and vendor)
+
+**Information Stored**:
+- Name and company
+- Email and phone
+- Billing and shipping addresses
+- Payment terms
+- Tax ID (optional)
+
+**Acceptance Criteria**:
+- Unique email addresses
+- Contact type classification
+- Transaction history linkage
+- Search and filter capability
+
+### FR-005: Dashboard and Analytics
+**Description**: System shall provide real-time financial insights.
+
+**Dashboard Metrics**:
+- Total outstanding invoices (receivables)
+- Total unpaid bills (payables)
+- Cash flow summary
+- Monthly revenue trend
+- Top expenses by category
+- Overdue invoices alert
+
+**Visualizations**:
+- Revenue trend charts
+- Expense breakdown pie chart
+- Accounts receivable aging
+- Accounts payable aging
+
+**Acceptance Criteria**:
+- Real-time data updates
+- Interactive charts
+- Date range filtering
+- Export to CSV/PDF
+
+## 4. Non-Functional Requirements
+
+### NFR-001: Performance
+- Page load time < 3 seconds
+- Dashboard refresh < 2 seconds
+- Support up to 1,000 concurrent users
+- Handle 100,000+ transactions
+
+### NFR-002: Security
+- User authentication and authorization
+- Data encryption at rest
+- Secure API communication (HTTPS)
+- Role-based access control
+
+### NFR-003: Reliability
+- 99.9% uptime availability
+- Data backup every 6 hours
+- Transaction audit trail
+- Data integrity validation
+
+### NFR-004: Usability
+- Mobile-responsive design
+- Intuitive navigation
+- Context-sensitive help
+- Bulk operations support
+
+## 5. Data Architecture
+
+### Database Schema
+\`\`\`mermaid
+erDiagram
+    CONTACT ||--o{ TRANSACTION : places
+    TRANSACTION ||--|{ TRANSACTION_ITEM : contains
+    TRANSACTION ||--o{ PAYMENT : receives
+
+    CONTACT {
+        int id PK
+        string name
+        string email UK
+        string phone
+        text address
+        string contact_type
+        datetime created_at
+    }
+
+    TRANSACTION {
+        int id PK
+        string type
+        string transaction_number UK
+        int contact_id FK
+        datetime transaction_date
+        datetime due_date
+        float subtotal
+        float tax
+        float total
+        float balance_due
+        string status
+        datetime created_at
+    }
+
+    TRANSACTION_ITEM {
+        int id PK
+        int transaction_id FK
+        string description
+        float quantity
+        float unit_price
+        float amount
+    }
+
+    PAYMENT {
+        int id PK
+        int transaction_id FK
+        datetime payment_date
+        float amount
+        string payment_method
+        string reference
+    }
+\`\`\`
+
+### Transaction Types
+1. **Invoice** - Sales to customers
+2. **Expense** - Business expenses
+3. **Bill** - Vendor purchases
+4. **Payment** - Invoice/bill payments
+
+## 6. Technical Architecture
+
+### System Architecture
+\`\`\`mermaid
+graph TB
+    subgraph "Presentation Layer"
+        WEB[React Web UI]
+    end
+
+    subgraph "Application Layer"
+        API[FastAPI Backend]
+        AUTH[Authentication Service]
+        VALID[Validation Service]
+    end
+
+    subgraph "Business Logic Layer"
+        INV[Invoice Service]
+        EXP[Expense Service]
+        BILL[Bill Service]
+        RPT[Report Service]
+    end
+
+    subgraph "Data Layer"
+        ORM[SQLAlchemy ORM]
+        DB[(PostgreSQL DB)]
+    end
+
+    WEB --> API
+    API --> AUTH
+    API --> VALID
+    API --> INV
+    API --> EXP
+    API --> BILL
+    API --> RPT
+    INV --> ORM
+    EXP --> ORM
+    BILL --> ORM
+    RPT --> ORM
+    ORM --> DB
+\`\`\`
+
+### Technology Stack
+- **Frontend**: React 18, TypeScript, Vite, Recharts
+- **Backend**: FastAPI, Python 3.11+
+- **Database**: PostgreSQL
+- **ORM**: SQLAlchemy
+- **API Documentation**: OpenAPI/Swagger
+
+## 7. Integration Requirements
+
+### Future Integrations
+- Payment gateways (Stripe, PayPal)
+- Accounting software export (QuickBooks, Xero)
+- Email notification service
+- Receipt scanning (OCR)
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Development Complete
+`,
+  },
+  {
+    slug: "product-location-recognition",
+    title: "Visual Product Search Application",
+    description:
+      "A web application that matches uploaded product photos to a store inventory and displays their location on an indoor store map. Built with a plugin-based architecture for easy extensibility.",
+    techStack: ["JavaScript", "ES6 Modules", "Leaflet.js", "Event-Driven Architecture", "Plugin Pattern"],
+    domain: "Frontend",
+    date: "2025-01",
+    status: "completed",
+    github: "https://github.com/stefansutanto/product-location-recognition",
+    summary: `
+# Visual Product Search Application
+
+## Overview
+A client-side web application that enables users to find products in a store by uploading photos. The app matches the uploaded image against a product inventory and displays the product's location on an interactive indoor map.
+
+## Key Features
+- 📷 Multiple Input Methods - File upload, camera capture, barcode scanning (extensible)
+- 🗺️ Interactive Map Display - Leaflet.js-powered indoor store navigation
+- 🔍 Image Matching - Similarity-based product matching
+- 🔌 Plugin Architecture - Easy to swap implementations via configuration
+- 📡 Event-Driven Communication - Decoupled components using pub/sub pattern
+
+## Technical Highlights
+- Zero backend requirements - runs entirely in the browser
+- Abstract Provider pattern for extensibility
+- JSON-based configuration system
+- Modular component architecture with no tight coupling
+- Designed for ML model integration (CLIP) ready
+
+## Architecture
+\`\`\`
+App.js (Main Controller)
+    │
+    ├── EventBus (Event-Driven Communication)
+    │
+    ├── Input Providers
+    │   ├── FileUpload (Implemented)
+    │   ├── Camera (Extensible)
+    │   └── Barcode (Extensible)
+    │
+    ├── Matching Providers
+    │   ├── SimpleImage (Implemented)
+    │   └── CLIP (ML-ready)
+    │
+    └── Output Providers
+        ├── LeafletMap (Implemented)
+        ├── GoogleMaps (Extensible)
+        └── ListView (Extensible)
+\`\`\`
+
+## Achievement
+Successfully implemented a modular, extensible system that demonstrates solid software architecture principles while solving a real-world retail navigation problem.
+    `,
+    brsContent: `# Business Requirements Specification: Visual Product Search Application
+
+## 1. Executive Summary
+
+### Business Problem
+Retail stores lose significant revenue due to customers unable to find products quickly. Studies show that 30% of customers leave stores without purchasing when they can't locate items, and average time spent searching is 15+ minutes per shopping trip.
+
+### Stakeholders
+- **Primary Users**: Retail customers shopping in-store
+- **Secondary Users**: Store managers, retail operations staff
+- **Technical Stakeholders**: Development team, store IT department
+
+### Success Criteria
+- Users can find product location in under 30 seconds
+- System works entirely client-side (no backend infrastructure required)
+- Matching accuracy above 70% for clear product photos
+- Easy deployment - just serve static files
+- Extensible architecture for future ML enhancements
+
+## 2. Business Context
+
+### Domain Analysis
+The retail technology sector is increasingly focused on bridging online and offline shopping experiences:
+
+- **In-store navigation**: Growing market, $2.3B by 2026
+- **Visual search**: 62% of Gen Z prefer visual over text search
+- **Self-service**: Customers prefer finding items independently vs. asking staff
+
+Key competitors include:
+- **Amazon Go**: Uses extensive camera infrastructure (expensive)
+- **Walmart App**: Product search but no indoor navigation
+- **Store-specific apps**: Fragmented, each store has different app
+
+### Market/Industry Background
+Traditional retailers struggle to compete with e-commerce convenience. In-store product finding solutions:
+- Expensive infrastructure-based systems (RFID, camera arrays)
+- Poor user experiences in current apps
+- Lack of standardized indoor navigation
+
+## 3. Functional Requirements
+
+### 3.1 Product Search
+
+#### FR-001: Image-Based Product Search
+- Users can upload or capture product photos
+- System returns list of matching products with similarity scores
+- Supports JPG, PNG, WebP formats
+- Maximum file size: 5MB
+
+#### FR-002: Product Selection
+- Users can select from top K matching results
+- System displays product details (name, department, location)
+- Visual indication of match confidence
+
+### 3.2 Location Display
+
+#### FR-003: Indoor Map Navigation
+- Display store floor plan with product locations
+- Interactive zoom and pan controls
+- Clear visual markers for product positions
+- Support for multi-floor stores (future)
+
+### 3.3 Input Methods
+
+#### FR-004: Multiple Input Channels
+- File upload from device
+- Camera capture (future)
+- Barcode scanning (future)
+- Voice command (future)
+
+### 3.4 Configuration
+
+#### FR-005: Admin Configuration
+- Store owners can upload product inventory
+- Map image can be customized per store
+- Matching threshold configurable
+- Easy switching between implementations
+
+## 4. Non-Functional Requirements
+
+### 4.1 Performance
+- Initial page load under 3 seconds
+- Image matching complete within 5 seconds
+- Map rendering under 2 seconds
+
+### 4.2 Usability
+- Zero learning curve - intuitive interface
+- Works on mobile and desktop browsers
+- No account registration required
+
+### 4.3 Maintainability
+- New input providers can be added in < 100 lines
+- Configuration changes require no code deployment
+- Clear API documentation for extending providers
+
+### 4.4 Scalability
+- Client-side processing (no server load)
+- Static file hosting sufficient
+- No database required
+
+## 5. Data Requirements
+
+### 5.1 Product Data
+- Product ID, name, image path
+- Department/category
+- Map coordinates (x, y)
+- In-stock status
+
+### 5.2 Map Data
+- Store floor plan image (SVG/PNG)
+- Coordinate system definition
+- Zone/department boundaries
+
+## 6. Technical Considerations
+
+### 6.1 Matching Algorithm
+- Phase 1: Color histogram comparison (implemented)
+- Phase 2: CLIP model integration (planned)
+- Configurable similarity threshold
+
+### 6.2 Privacy
+- No user data collection
+- No server communication required
+- Images processed entirely client-side
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Complete
+`,
+    archContent: `# Architecture Document: Visual Product Search Application
+
+## 1. System Overview
+
+### 1.1 Purpose
+This document describes the architecture of a plugin-based visual product search application designed for extensibility and maintainability.
+
+### 1.2 Design Philosophy
+- **Plugin-based**: All major components are swappable via configuration
+- **Event-driven**: Components communicate through a central event bus
+- **Interface-first**: Abstract base classes define clear contracts
+- **Zero-backend**: Complete client-side operation
+
+## 2. High-Level Architecture
+
+\`\`\`
+┌─────────────────────────────────────────────────────────────┐
+│                        App.js                                │
+│                    (Main Controller)                         │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                  EventBus                            │   │
+│  │  (Event-Driven Communication)                        │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   Input      │    │   Matching   │    │   Output     │
+│   Providers  │    │   Providers  │    │   Providers  │
+├──────────────┤    ├──────────────┤    ├──────────────┤
+│ FileUpload   │    │ SimpleImage  │    │ LeafletMap   │
+│ Camera       │    │ CLIP         │    │ GoogleMaps   │
+│ Barcode      │    │              │    │ ListView     │
+└──────────────┘    └──────────────┘    └──────────────┘
+\`\`\`
+
+## 3. Component Design
+
+### 3.1 EventBus (Core Communication)
+
+**Purpose**: Decouple all components using publish-subscribe pattern
+
+\`\`\`javascript
+class EventBus {
+    on(event, callback)      // Subscribe
+    off(event, callback)     // Unsubscribe
+    emit(event, data)        // Publish
+}
+\`\`\`
+
+**Key Events**:
+- \`input:captured\` - Image captured from input provider
+- \`matching:complete\` - Product matches found
+- \`product:selected\` - User selected a product
+- \`output:ready\` - Location display ready
+
+### 3.2 InputProvider (Abstract)
+
+**Interface**:
+\`\`\`javascript
+class InputProvider {
+    constructor(eventBus)
+    async capture()              // Returns image data
+    getSupportedFormats()        // Returns array of MIME types
+    initialize(container)         // Sets up UI
+    destroy()                    // Cleanup (optional)
+}
+\`\`\`
+
+**Implementations**:
+- \`FileUploadInput\` - File upload with drag & drop ✅
+- \`CameraInput\` - WebRTC camera capture 🚧
+- \`BarcodeInput\` - Barcode scanner 🚧
+
+### 3.3 MatchingProvider (Abstract)
+
+**Interface**:
+\`\`\`javascript
+class MatchingProvider {
+    constructor(eventBus, config)
+    async findMatches(imageData, topK)  // Returns matches
+    initialize(products)                 // Setup with inventory
+    async addProduct(product)            // Add product (optional)
+    destroy()                            // Cleanup (optional)
+}
+\`\`\`
+
+**Implementations**:
+- \`SimpleImageMatching\` - Color histogram comparison ✅
+- \`CLIPMatcher\` - ML-based embedding matching 🚧
+
+### 3.4 OutputProvider (Abstract)
+
+**Interface**:
+\`\`\`javascript
+class OutputProvider {
+    constructor(eventBus, options)
+    async displayLocation(product)       // Show location
+    async highlightProduct(productId)    // Highlight
+    initialize(container)                 // Setup UI
+    clear()                              // Clear display
+    destroy()                            // Cleanup (optional)
+}
+\`\`\`
+
+**Implementations**:
+- \`LeafletMapOutput\` - Interactive indoor map ✅
+- \`GoogleMapsOutput\` - Google Maps integration 🚧
+- \`ListViewOutput\` - Simple list view 🚧
+
+## 4. Data Flow
+
+### 4.1 Product Search Flow
+
+\`\`\`mermaid
+sequenceDiagram
+    participant User
+    participant Input
+    participant EventBus
+    participant Matching
+    participant Output
+
+    User->>Input: Upload photo
+    Input->>EventBus: emit('input:captured', imageData)
+    EventBus->>Matching: Handle image data
+    Matching->>EventBus: emit('matching:complete', matches)
+    EventBus->>Output: Display matches
+    Output->>User: Show products + locations
+    User->>Output: Click "View Location"
+    Output->>Output: Display on map
+\`\`\`
+
+### 4.2 Configuration System
+
+\`\`\`javascript
+// src/core/config.js
+export default {
+    input: {
+        provider: 'file-upload',  // 'camera', 'barcode'
+        options: {
+            maxFileSize: 5242880,
+            acceptedFormats: ['image/jpeg', 'image/png', 'image/webp']
+        }
+    },
+    matching: {
+        provider: 'simple',  // 'clip'
+        threshold: 0.7,
+        topK: 5
+    },
+    output: {
+        provider: 'leaflet-map',  // 'google-maps', 'list-view'
+        options: {
+            mapImage: '/data/store-map.svg',
+            defaultZoom: 1,
+            maxZoom: 4,
+            minZoom: 1
+        }
+    }
+}
+\`\`\`
+
+## 5. Extension Pattern
+
+### 5.1 Adding a New Input Provider
+
+**Step 1**: Extend \`InputProvider\`
+\`\`\`javascript
+class VoiceInput extends InputProvider {
+    getSupportedFormats() { return ['text/voice-command']; }
+    async capture() { /* ... */ }
+}
+\`\`\`
+
+**Step 2**: Import in \`App.js\`
+\`\`\`javascript
+import VoiceInput from '../modules/input/VoiceInput.js';
+\`\`\`
+
+**Step 3**: Add to factory
+\`\`\`javascript
+case 'voice':
+    this.inputProvider = new VoiceInput(this.eventBus);
+    break;
+\`\`\`
+
+**Step 4**: Update config.js - DONE!
+
+## 6. Technology Stack
+
+- **Language**: Vanilla JavaScript (ES6+)
+- **Modules**: ES6 Modules (no bundler required)
+- **Mapping**: Leaflet.js
+- **Matching**: Canvas API for image processing
+- **Styling**: CSS3 with Flexbox/Grid
+- **Serving**: Any static file server
+
+## 7. Deployment Architecture
+
+\`\`\`
+┌─────────────────┐
+│   Static Host   │
+│  (nginx/AWS S3) │
+└────────┬────────┘
+         │
+         ├── index.html
+         ├── src/
+         │   ├── core/
+         │   ├── modules/
+         │   └── ui/
+         └── data/
+             ├── products.json
+             └── store-map.svg
+\`\`\`
+
+**No backend required!**
+
+## 8. Future Enhancements
+
+### 8.1 ML Integration (CLIP)
+
+\`\`\`javascript
+class CLIPMatcher extends MatchingProvider {
+    async initialize(products) {
+        this.model = await loadCLIPModel();
+        this.embeddings = await Promise.all(
+            products.map(p => ({
+                id: p.id,
+                embedding: await this.model.encodeImage(p.imagePath)
+            }))
+        );
+    }
+
+    async findMatches(imageData, topK) {
+        const queryEmbedding = await this.model.encodeImage(imageData);
+        return this.embeddings
+            .map(e => ({
+                product: products.find(p => p.id === e.id),
+                score: cosineSimilarity(queryEmbedding, e.embedding)
+            }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, topK);
+    }
+}
+\`\`\`
+
+### 8.2 Offline PWA
+
+- Service Worker for offline support
+- IndexedDB for product catalog caching
+- Background sync for analytics
+
+## 9. Design Patterns Used
+
+1. **Strategy Pattern** - Interchangeable algorithms (matching)
+2. **Factory Pattern** - Provider instantiation
+3. **Observer Pattern** - Event bus communication
+4. **Template Method** - Abstract base classes
+5. **Facade Pattern** - App.js simplifies complexity
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Complete
+`,
   },
 ];
 
