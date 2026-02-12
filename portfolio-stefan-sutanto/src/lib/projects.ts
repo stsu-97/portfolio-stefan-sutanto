@@ -3605,6 +3605,40 @@ graph LR
 **Status**: Development Complete
 `,
   },
+  {
+    slug: "diabetes-prediction-app",
+    title: "Diabetes Prediction Web App",
+    description:
+      "Interactive web application for predicting diabetes risk using trained ML models. Features a 29-parameter input form with real-time predictions and risk assessment visualization.",
+    techStack: ["Python", "Streamlit", "scikit-learn", "Joblib"],
+    domain: "ML/Web App",
+    date: "2025-02",
+    status: "completed",
+    liveDemo: "http://localhost:8501",
+    summary: `
+# Diabetes Prediction Web App
+
+## Overview
+A user-friendly web application built with Streamlit that provides real-time diabetes risk predictions using a trained ensemble meta-learner model (Logistic Regression combining CatBoost and LightGBM).
+
+## Key Features
+- 📋 29-parameter input form covering demographics, lifestyle, and clinical indicators
+- 🔮 Real-time predictions using trained ensemble model
+- 📊 Visual risk assessment with color-coded probability gauge
+- 🔍 Key contributing factors explanation
+- ⚠️ Medical disclaimer and educational context
+
+## Technical Highlights
+- **Framework:** Streamlit for rapid ML app development
+- **Model:** Meta-learner ensemble (AUC: 0.726)
+- **Features:** Age-BMI interaction, cholesterol ratios, binning for non-linear relationships
+- **Risk Levels:** Low (<30%), Moderate (30-50%), High (50-70%), Very High (>70%)
+- **Categorical Encoding:** Handles unseen categories gracefully
+
+## Achievement
+Successfully deployed a fully functional ML prediction web app with proper feature engineering pipeline, categorical encoding handling, and interpretable risk output for end users.
+    `,
+  },
 ];
 
 /**
