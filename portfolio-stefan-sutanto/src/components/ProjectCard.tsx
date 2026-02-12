@@ -1,6 +1,8 @@
 /**
  * Project Card Component
  */
+import Link from 'next/link';
+
 interface ProjectCardProps {
   title: string;
   description: string;
@@ -13,7 +15,7 @@ export function ProjectCard({ title, description, techStack, domain, slug }: Pro
   return (
     <article className="group p-6 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-neutral-600 transition-all hover:shadow-lg hover:shadow-blue-900/10">
       <h3 className="text-xl font-semibold text-neutral-100 mb-2 group-hover:text-blue-400 transition-colors">
-        <a href={`/projects/${slug}`}>{title}</a>
+        <Link href={`/projects/${slug}.html`}>{title}</Link>
       </h3>
       <p className="text-neutral-400 mb-4 line-clamp-3">{description}</p>
 
@@ -42,12 +44,12 @@ export function ProjectCard({ title, description, techStack, domain, slug }: Pro
       </div>
 
       {/* Link */}
-      <a
-        href={`/projects/${slug}`}
+      <Link
+        href={`/projects/${slug}.html`}
         className="inline-flex items-center text-sm text-blue-400 hover:text-blue-300 transition-colors"
       >
         View Details →
-      </a>
+      </Link>
     </article>
   );
 }

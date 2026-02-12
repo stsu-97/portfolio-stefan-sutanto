@@ -10,8 +10,9 @@ const nextConfig = {
       },
     ],
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/portfolio-stefan-sutanto' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/portfolio-stefan-sutanto' : '',
+  basePath: '/portfolio-stefan-sutanto',
+  assetPrefix: '/portfolio-stefan-sutanto',
+  trailingSlash: true,
 }
 
 module.exports = nextConfig
