@@ -1,0 +1,978 @@
+2:I[9569,["648","static/chunks/648-6bbcbdfb224ff41e.js","215","static/chunks/215-3f7bcdb920c31c2c.js","101","static/chunks/app/projects/%5Bslug%5D/page-f73fc23278eefa97.js"],"ProjectDetailClient"]
+5:I[4707,[],""]
+7:I[6423,[],""]
+3:T314f,# Business Requirements Specification: Ledger System
+
+## 1. Executive Summary
+
+### Business Problem
+Small and medium businesses in Indonesia lack access to affordable, user-friendly accounting software that complies with local business practices. International solutions like QuickBooks and Xero are expensive and not optimized for Indonesian market needs (IDR currency, local tax compliance, localization).
+
+### Stakeholders
+- **Primary Users**: Small business owners, accountants, bookkeepers
+- **Secondary Users**: Finance managers, business consultants
+- **Technical Stakeholders**: Development team, system administrators
+
+### Success Criteria
+- Enable users to create and manage invoices in under 2 minutes
+- Support double-entry bookkeeping with automatic journal entry generation
+- Provide accurate financial reports (Trial Balance, Profit & Loss)
+- Achieve 99.9% data accuracy for financial calculations
+- Support Indonesian Rupiah (IDR) as primary currency with multi-currency capability
+
+## 2. Business Context
+
+### Domain Analysis
+The accounting software market in Indonesia is growing rapidly, driven by:
+- Increasing digital transformation among SMEs
+- Government push for tax digitization
+- Growing startup ecosystem
+
+Key competitors include:
+- **Jurnal.id** - Market leader, comprehensive but expensive
+- **Accurate** - Established player, complex UI
+- **FreshBooks** - International, not IDR-optimized
+- **Zahir** - Local solution, outdated interface
+
+### Market/Industry Background
+Indonesia's SME sector represents 60% of GDP and employs 97% of workforce. However, only 20% use digital accounting solutions, primarily due to:
+- Cost barriers (premium solutions cost $20-50/month)
+- Complexity of existing tools
+- Lack of localization features
+
+## 3. Functional Requirements
+
+### 3.1 Transaction Management
+
+#### FR-001: Sales Transaction Management
+**Description**: System shall allow creation and management of sales transactions including invoices, sales orders, quotations, and delivery orders.
+
+**Use Case**: Create Sales Invoice
+1. User navigates to Sales module
+2. User selects "Create New Invoice"
+3. System displays invoice form with customer selection
+4. User enters transaction details (date, due date, payment terms)
+5. User adds line items (description, quantity, unit price)
+6. System calculates subtotal and total automatically
+7. User submits invoice
+8. System generates unique invoice number (e.g., SI-2412-ABC123)
+9. System creates corresponding journal entries
+
+**Acceptance Criteria**:
+- Invoice number format: {Type Code}-{YYMM}-{Unique ID}
+- Automatic calculation of line item amounts
+- Support for multiple currencies (IDR, USD, EUR)
+- Payment terms: Net 15, Net 30, Net 60, Due on Receipt
+
+#### FR-002: Purchase Transaction Management
+**Description**: System shall manage purchase-related transactions including bills, purchase orders, and vendor payments.
+
+**Use Case**: Record Vendor Bill
+1. User selects Purchases module
+2. User creates new bill
+3. User selects vendor from contact database
+4. User enters bill details and line items
+5. System calculates totals
+6. Bill is saved with draft status
+7. User can update status to sent/open/paid
+
+**Acceptance Criteria**:
+- Support for vendor bills and purchase orders
+- Automatic bill number generation (PI-{YYMM}-{Unique ID})
+- Status tracking: draft, sent, open, paid, overdue, cancelled
+
+#### FR-003: Expense Management
+**Description**: System shall enable recording and tracking of business expenses with categorization and approval workflow.
+
+**Use Case**: Record Business Expense
+1. User accesses Expense form
+2. User enters expense details (category, beneficiary, amount)
+3. User attaches receipts (future enhancement)
+4. System records expense with unique number
+5. If requires_approval=true, route for approval
+
+**Acceptance Criteria**:
+- Expense categories: Office supplies, Travel, Entertainment, Utilities, Salary, Marketing, Other
+- Optional approval workflow
+- Expense number format: EXP-{YYMM}-{Unique ID}
+
+### 3.2 Contact Management
+
+#### FR-004: Customer and Vendor Database
+**Description**: System shall maintain a centralized database of customers and vendors.
+
+**Data Requirements**:
+- Name (required)
+- Email address (unique, required)
+- Phone number
+- Billing address
+- City, Country
+- Contact Type: Customer or Vendor
+
+**Acceptance Criteria**:
+- CRUD operations on contacts
+- Search and filter functionality
+- Unique email validation
+
+### 3.3 Reporting
+
+#### FR-005: Financial Reports
+**Description**: System shall generate standard accounting reports.
+
+**Report Types**:
+1. **Trial Balance**: Debit and credit balances for all accounts
+2. **Dashboard Metrics**:
+   - Unpaid invoices total
+   - Overdue invoices total
+   - Payments received/sent (30-day period)
+   - Monthly expenses summary
+
+**Acceptance Criteria**:
+- Reports exportable to PDF
+- Date-range filtering
+- Real-time calculation
+
+### 3.4 Double-Entry Bookkeeping
+
+#### FR-006: Journal Entry Generation
+**Description**: System shall automatically generate journal entries for each transaction following double-entry principles.
+
+**Rules**:
+- Every transaction must balance (debits = credits)
+- Invoice sales: Debit Accounts Receivable, Credit Revenue
+- Bill purchases: Debit Expense, Credit Accounts Payable
+- Payments: Debit Accounts Payable/Cash, Credit Cash/Bank
+
+**Account Types**:
+- Asset (debit balance)
+- Liability (credit balance)
+- Equity (credit balance)
+- Revenue (credit balance)
+- Expense (debit balance)
+
+## 4. Non-Functional Requirements
+
+### 4.1 Performance Requirements
+- **Response Time**: API responses under 500ms (p95)
+- **Page Load**: Initial application load under 3 seconds
+- **Concurrent Users**: Support 100 simultaneous users
+- **Database Queries**: All queries execute under 200ms with proper indexing
+
+### 4.2 Security Requirements
+- **Authentication**: Username/password with session management (future)
+- **Authorization**: Role-based access control (future)
+- **Data Protection**: All sensitive data encrypted at rest
+- **API Security**: CORS restrictions, input validation, SQL injection prevention
+- **Password Storage**: Bcrypt hashing with minimum 10 rounds
+
+### 4.3 Scalability Requirements
+- **Horizontal Scaling**: Stateless API design for load balancing
+- **Database**: Support for migration from SQLite to PostgreSQL
+- **Multi-tenancy**: Architecture supports multiple companies per database instance
+
+### 4.4 Usability Requirements
+- **Accessibility**: WCAG 2.1 Level AA compliance
+- **Mobile Responsiveness**: Full functionality on tablet devices
+- **Browser Support**: Chrome, Firefox, Safari, Edge (latest 2 versions)
+- **Language**: Primary interface in English with IDR localization
+
+### 4.5 Reliability Requirements
+- **Uptime**: 99.5% availability target
+- **Data Integrity**: ACID compliance for all transactions
+- **Backup**: Daily automated backups with 30-day retention
+
+## 5. Data Requirements
+
+### 5.1 Data Sources
+- **User Input**: All transaction and contact data entered manually
+- **System Generated**: Transaction numbers, timestamps, calculated amounts
+- **External APIs** (future): Bank feeds, tax rates
+
+### 5.2 Data Entities
+
+#### Transaction
+| Field | Type | Description |
+|-------|------|-------------|
+| id | Integer | Primary key |
+| type | String | sales, purchase, expense, payment |
+| category | String | invoice, order, quotation, delivery |
+| transaction_number | String | Unique business identifier |
+| contact_id | Integer | Foreign key to Contact |
+| transaction_date | DateTime | Transaction date |
+| due_date | DateTime | Payment due date |
+| subtotal | Float | Sum of line items |
+| tax | Float | Tax amount (future) |
+| total | Float | Grand total |
+| balance_due | Float | Outstanding amount |
+| status | String | draft, sent, open, paid, overdue, cancelled |
+| currency | String | ISO 4217 currency code |
+
+#### Contact
+| Field | Type | Description |
+|-------|------|-------------|
+| id | Integer | Primary key |
+| name | String | Contact name |
+| email | String | Unique email address |
+| phone | String | Phone number |
+| address | Text | Full address |
+| city | String | City |
+| country | String | Country |
+| contact_type | String | customer, vendor |
+
+#### TransactionItem
+| Field | Type | Description |
+|-------|------|-------------|
+| id | Integer | Primary key |
+| transaction_id | Integer | Foreign key to Transaction |
+| description | String | Item description |
+| quantity | Float | Quantity |
+| unit_price | Float | Price per unit |
+| amount | Float | Calculated amount |
+
+#### Account
+| Field | Type | Description |
+|-------|------|-------------|
+| id | Integer | Primary key |
+| code | String | Account code |
+| name | String | Account name |
+| account_type | String | asset, liability, equity, revenue, expense |
+| balance | Float | Running balance |
+
+#### JournalEntry
+| Field | Type | Description |
+|-------|------|-------------|
+| id | Integer | Primary key |
+| transaction_id | Integer | Foreign key to Transaction |
+| account_id | Integer | Foreign key to Account |
+| debit | Float | Debit amount |
+| credit | Float | Credit amount |
+| description | String | Entry description |
+| entry_date | DateTime | Entry date |
+
+### 5.3 Data Relationships
+```
+Contact (1) ----< (N) Transaction
+Transaction (1) ----< (N) TransactionItem
+Transaction (1) ----< (N) JournalEntry
+Account (1) ----< (N) JournalEntry
+```
+
+## 6. Integration Requirements
+
+### 6.1 APIs
+- **Internal REST API**: All frontend-backend communication via REST
+- **Future Integrations**:
+  - Payment gateways (Midtrans, Xendit)
+  - E-invoicing ( Indonesian tax system)
+  - Bank APIs for transaction import
+
+### 6.2 Third-Party Services (Future)
+- **Email Service**: Send invoices and payment reminders
+- **PDF Generation**: ReportLab for server-side PDF
+- **Authentication**: OAuth 2.0 providers (Google, Microsoft)
+
+## 7. Constraints & Assumptions
+
+### 7.1 Technical Constraints
+- **Backend**: Must use Python with FastAPI framework
+- **Frontend**: Must use React with TypeScript
+- **Database**: SQLite for development, PostgreSQL for production
+- **Deployment**: Must support containerization (Docker)
+
+### 7.2 Business Constraints
+- **Budget**: Self-funded development phase
+- **Timeline**: MVP within 6 months
+- **Regulatory**: Must comply with Indonesian accounting standards (PSAK)
+
+### 7.3 Assumptions
+- Users have basic accounting knowledge
+- Internet connectivity is available
+- IDR is the primary currency
+- Tax rate is flat 11% (future configurable)
+
+## 8. Risk Analysis
+
+### 8.1 Identified Risks
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Data corruption | Low | Critical | Daily backups, database transactions |
+| SQL injection attacks | Medium | High | ORM usage, input validation |
+| Payment calculation errors | Low | Critical | Comprehensive testing, code reviews |
+| Multi-currency rounding issues | Medium | Medium | Use Decimal for monetary values |
+| User adoption resistance | High | High | Intuitive UI, user training, documentation |
+
+### 8.2 Mitigation Strategies
+- **Data Integrity**: Foreign key constraints, transaction rollbacks
+- **Security**: Regular security audits, dependency updates
+- **Quality**: Automated testing (pytest), manual QA
+- **Adoption**: User feedback loops, iterative improvements
+
+## 9. Testing Strategy
+
+### 9.1 Test Scenarios
+
+#### Functional Testing
+| Scenario | Expected Result |
+|----------|-----------------|
+| Create invoice with valid data | Invoice saved with unique number |
+| Create invoice with past date | Error message displayed |
+| Delete paid invoice | Prevented with error |
+| Edit draft transaction | Successfully updated |
+| Generate trial balance | Debits = Credits |
+| Export report to PDF | PDF generated successfully |
+
+#### Integration Testing
+| Scenario | Expected Result |
+|----------|-----------------|
+| Frontend-backend API calls | Proper data exchange |
+| Database transaction commit | Data persisted correctly |
+| Concurrent transaction creation | No duplicate numbers |
+
+#### Performance Testing
+| Scenario | Expected Result |
+|----------|-----------------|
+| 100 concurrent users | Response time < 500ms |
+| Large dataset query (10k+ transactions) | Results < 2 seconds |
+| PDF report generation | Complete < 5 seconds |
+
+### 9.2 Acceptance Criteria
+- All functional requirements pass testing
+- API documentation (Swagger) is complete
+- Code coverage > 80%
+- No critical bugs remaining
+- User acceptance testing signed off
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: December 2024
+**Author**: Stefan Sutanto
+**Status**: Approved for Development
+4:T3f44,# Architecture Document: Ledger System
+
+## 1. System Overview
+
+The Ledger System is a full-stack web application implementing double-entry accounting principles. The system follows a client-server architecture with clear separation of concerns:
+
+- **Frontend**: React SPA (Single Page Application) with TypeScript
+- **Backend**: FastAPI REST API with async support
+- **Database**: SQLite (development) / PostgreSQL (production)
+- **Communication**: REST over HTTP with JSON payloads
+
+The architecture prioritizes maintainability, testability, and scalability while maintaining simplicity for the MVP phase.
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        FE[React Frontend<br/>TypeScript + Vite]
+    end
+
+    subgraph "API Layer"
+        CORS[CORS Middleware]
+        ROUTER[API Router]
+        TRANS[Transactions API]
+        RPT[Reports API]
+        CT[Contacts API]
+    end
+
+    subgraph "Business Logic Layer"
+        TSVC[Transaction Service]
+        RSVC[Report Service]
+        TB[Trial Balance Service]
+    end
+
+    subgraph "Data Access Layer"
+        ORM[SQLAlchemy ORM]
+        MODELS[Pydantic Schemas]
+    end
+
+    subgraph "Data Layer"
+        DB[(SQLite/PostgreSQL)]
+    end
+
+    FE -->|HTTP/JSON| CORS
+    CORS --> ROUTER
+    ROUTER --> TRANS
+    ROUTER --> RPT
+    ROUTER --> CT
+    TRANS --> TSVC
+    RPT --> RSVC
+    RPT --> TB
+    TSVC --> ORM
+    RSVC --> ORM
+    ORM --> MODELS
+    ORM --> DB
+```
+
+## 2. Component Architecture
+
+### 2.1 Frontend Architecture
+
+```
+frontend/src/
+├── components/
+│   ├── Sidebar.tsx          # Navigation component
+│   └── Layout.tsx           # App layout wrapper
+├── pages/
+│   ├── Dashboard.tsx        # Main overview
+│   ├── Sales.tsx            # Sales list & management
+│   ├── Purchases.tsx        # Purchases list & management
+│   ├── Expenses.tsx         # Expense list & management
+│   ├── InvoiceForm.tsx      # Invoice creation
+│   ├── ExpenseForm.tsx      # Expense recording
+│   └── Reports.tsx          # Financial reports
+├── App.tsx                  # Root component with routing
+└── main.tsx                 # Application entry point
+```
+
+**Component Responsibilities**:
+
+| Component | Responsibility |
+|-----------|----------------|
+| Sidebar | Navigation menu, route links |
+| Dashboard | Overview metrics, recent transactions |
+| Sales/Purchases/Expenses | Transaction list views with filtering |
+| InvoiceForm | Invoice creation with line items |
+| ExpenseForm | Expense recording with categories |
+| Reports | Trial balance display, PDF export |
+
+### 2.2 Backend Architecture
+
+```
+backend/app/
+├── main.py                  # FastAPI application setup
+├── database.py              # Database configuration & session
+├── models/
+│   └── transaction.py      # SQLAlchemy models
+├── schemas/                 # Pydantic validation schemas
+├── routes/
+│   ├── transactions_v2.py  # Transaction endpoints
+│   ├── transactions.py      # Legacy transaction endpoints
+│   ├── contacts.py          # Contact management
+│   └── reports.py          # Report generation
+└── services/
+    └── trial_balance_service.py  # Business logic for reports
+```
+
+**Layer Responsibilities**:
+
+| Layer | Responsibility |
+|-------|----------------|
+| Routes (API) | HTTP request handling, validation |
+| Services | Business logic, calculations |
+| Models | Data persistence, relationships |
+| Schemas | Request/response validation |
+
+### 2.3 API Versioning Strategy
+
+The system implements API versioning through URL prefixes:
+- `/api/v2/transactions/` - Current version (recommended)
+- `/api/transactions/` - Legacy version (maintained for compatibility)
+
+## 3. Data Architecture
+
+### 3.1 Database Schema
+
+```mermaid
+erDiagram
+    CONTACT ||--o{ TRANSACTION : places
+    TRANSACTION ||--|{ TRANSACTION_ITEM : contains
+    TRANSACTION ||--o{ JOURNAL_ENTRY : generates
+    ACCOUNT ||--o{ JOURNAL_ENTRY : appears_in
+
+    CONTACT {
+        int id PK
+        string name
+        string email UK
+        string phone
+        text address
+        string city
+        string country
+        string contact_type
+        datetime created_at
+        datetime updated_at
+    }
+
+    TRANSACTION {
+        int id PK
+        string type
+        string category
+        string transaction_number UK
+        int contact_id FK
+        datetime transaction_date
+        datetime due_date
+        float subtotal
+        float tax
+        float total
+        float balance_due
+        string status
+        string currency
+        text notes
+        datetime created_at
+        datetime updated_at
+    }
+
+    TRANSACTION_ITEM {
+        int id PK
+        int transaction_id FK
+        string description
+        float quantity
+        float unit_price
+        float amount
+        datetime created_at
+    }
+
+    ACCOUNT {
+        int id PK
+        string code UK
+        string name
+        string account_type
+        float balance
+        datetime created_at
+    }
+
+    JOURNAL_ENTRY {
+        int id PK
+        int transaction_id FK
+        int account_id FK
+        float debit
+        float credit
+        string description
+        datetime entry_date
+        datetime created_at
+    }
+```
+
+### 3.2 Data Flow Diagram
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as React UI
+    participant API as FastAPI
+    participant DB as Database
+
+    User->>UI: Create Invoice
+    UI->>UI: Validate Form
+    UI->>API: POST /api/v2/transactions/sales
+    API->>API: Generate Transaction Number
+    API->>API: Calculate Totals
+    API->>DB: Begin Transaction
+    API->>DB: Insert Transaction
+    API->>DB: Insert Transaction Items
+    API->>DB: Create Journal Entries
+    DB-->>API: Commit Success
+    API-->>UI: Return Created Transaction
+    UI-->>User: Display Success
+```
+
+### 3.3 Transaction State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft: Create Transaction
+    Draft --> Sent: Send to Customer/Vendor
+    Sent --> Open: Acknowledged
+    Sent --> Draft: Rejected
+    Open --> Paid: Payment Received
+    Open --> Overdue: Past Due Date
+    Overdue --> Paid: Late Payment
+    Paid --> [*]: Archived
+    Draft --> [*]: Deleted
+    Sent --> Cancelled: Cancelled
+    Open --> Cancelled: Cancelled
+```
+
+## 4. API Design
+
+### 4.1 Transaction Endpoints
+
+#### Sales Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v2/transactions/sales` | List all sales |
+| GET | `/api/v2/transactions/sales/{id}` | Get single sale |
+| POST | `/api/v2/transactions/sales` | Create sale |
+| PUT | `/api/v2/transactions/sales/{id}` | Update sale |
+| DELETE | `/api/v2/transactions/sales/{id}` | Delete sale |
+
+#### Purchase Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v2/transactions/purchases` | List all purchases |
+| GET | `/api/v2/transactions/purchases/{id}` | Get single purchase |
+| POST | `/api/v2/transactions/purchases` | Create purchase |
+| PUT | `/api/v2/transactions/purchases/{id}` | Update purchase |
+| DELETE | `/api/v2/transactions/purchases/{id}` | Delete purchase |
+
+#### Expenses
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v2/transactions/expenses` | List all expenses |
+| GET | `/api/v2/transactions/expenses/{id}` | Get single expense |
+| POST | `/api/v2/transactions/expenses` | Create expense |
+| PUT | `/api/v2/transactions/expenses/{id}` | Update expense |
+| DELETE | `/api/v2/transactions/expenses/{id}` | Delete expense |
+
+#### Dashboard Metrics
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v2/transactions/dashboard/sales` | Sales metrics |
+| GET | `/api/v2/transactions/dashboard/purchases` | Purchase metrics |
+| GET | `/api/v2/transactions/dashboard/expenses` | Expense metrics |
+
+### 4.2 Reports Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/reports/trial-balance` | Trial balance data |
+| GET | `/api/reports/trial-balance/pdf` | Export trial balance PDF |
+
+### 4.3 API Request/Response Examples
+
+**Create Sale Request**:
+```json
+POST /api/v2/transactions/sales
+{
+  "contact_id": 1,
+  "email": "customer@example.com",
+  "billing_address": "Jl. Sudirman No. 1",
+  "transaction_date": "2024-12-01",
+  "due_date": "2024-12-31",
+  "currency": "IDR",
+  "notes": "Payment due within 30 days",
+  "items": [
+    {
+      "description": "Web Development Services",
+      "quantity": 1,
+      "unit_price": 5000000
+    }
+  ]
+}
+```
+
+**Create Sale Response**:
+```json
+{
+  "id": 1,
+  "type": "sales",
+  "category": "invoice",
+  "transaction_number": "SI-2412-A3F9B2",
+  "contact_id": 1,
+  "transaction_date": "2024-12-01T00:00:00",
+  "due_date": "2024-12-31T00:00:00",
+  "subtotal": 5000000,
+  "total": 5000000,
+  "balance_due": 5000000,
+  "status": "draft",
+  "currency": "IDR"
+}
+```
+
+## 5. Technology Stack Rationale
+
+### 5.1 Backend Technologies
+
+| Technology | Version | Justification |
+|------------|----------|--------------|
+| **FastAPI** | 0.104.1 | Modern, fast Python framework with automatic API docs |
+| **SQLAlchemy** | 2.0.23 | Mature ORM with relationship management and migrations |
+| **Pydantic** | 2.5.0 | Data validation, automatic JSON serialization |
+| **Uvicorn** | 0.24.0 | ASGI server with excellent performance |
+| **ReportLab** | 4.0.7 | PDF generation for reports |
+
+**Why FastAPI**:
+- Native async/await support for better performance
+- Automatic OpenAPI documentation (Swagger UI)
+- Type hints and Pydantic integration
+- Fast execution time (comparable to NodeJS and Go)
+
+### 5.2 Frontend Technologies
+
+| Technology | Version | Justification |
+|------------|----------|--------------|
+| **React** | 18.2.0 | Component-based architecture, large ecosystem |
+| **TypeScript** | 5.3.0 | Type safety, better developer experience |
+| **Vite** | 5.0.0 | Fast HMR, optimized builds |
+| **React Router** | 6.20.0 | Declarative routing |
+| **Axios** | 1.6.0 | Promise-based HTTP client |
+
+**Why React + TypeScript**:
+- Strong typing prevents runtime errors
+- Excellent developer tooling
+- Component reusability
+- Large talent pool for hiring
+
+### 5.3 Database Choice
+
+| Feature | SQLite | PostgreSQL |
+|---------|---------|------------|
+| Development | ✅ Recommended | - |
+| Production | - | ✅ Recommended |
+| Reasoning | Zero configuration, file-based | ACID compliance, scalability |
+
+## 6. Deployment Architecture
+
+### 6.1 Development Environment
+
+```mermaid
+graph LR
+    DEV[Developer Machine] -->|npm run dev| VITE[Vite Dev Server]
+    VITE -->|localhost:5173| REACT[React SPA]
+    DEV -->|uvicorn| API[FastAPI]
+    API -->|sqlite:///| DEVDB[ledger.db]
+
+    REACT -->|CORS| API
+```
+
+### 6.2 Production Architecture (Planned)
+
+```mermaid
+graph TB
+    subgraph "CDN"
+        CF[CloudFlare]
+    end
+
+    subgraph "Application Server"
+        Docker[Docker Container]
+        FE[React Build<br/>Nginx Static]
+        API[FastAPI<br/>Uvicorn]
+    end
+
+    subgraph "Database"
+        PG[(PostgreSQL<br/>Managed Database)]
+    end
+
+    subgraph "Storage"
+        S3[S3/Backblaze<br/>File Storage]
+    end
+
+    CF --> Docker
+    Docker --> FE
+    Docker --> API
+    API --> PG
+    API --> S3
+```
+
+### 6.3 CI/CD Pipeline (Future)
+
+```mermaid
+graph LR
+    GIT[Git Push] --> GH[GitHub Actions]
+    GH --> TEST[Run Tests]
+    TEST -->|Pass| BUILD[Build Docker Image]
+    TEST -->|Fail| NOTIFY[Notify Developers]
+    BUILD --> DEPLOY[Deploy to Production]
+```
+
+**Pipeline Stages**:
+1. **Lint**: ESLint for frontend, Black for backend
+2. **Test**: pytest (backend), Jest (frontend)
+3. **Build**: Docker images
+4. **Deploy**: Automated deployment
+
+## 7. Security Considerations
+
+### 7.1 Current Security Measures
+
+| Concern | Implementation |
+|---------|----------------|
+| CORS | Restricted to localhost:3000 and localhost:5173 |
+| SQL Injection | SQLAlchemy ORM parameterized queries |
+| XSS | React automatic escaping |
+| CSRF | Future: SameSite cookies, CSRF tokens |
+
+### 7.2 Planned Security Enhancements
+
+1. **Authentication & Authorization**
+   - JWT-based authentication
+   - Role-based access control (Admin, Accountant, Viewer)
+   - Multi-factor authentication (MFA)
+
+2. **Data Protection**
+   - AES-256 encryption for sensitive data
+   - TLS 1.3 for data in transit
+   - Regular security audits
+
+3. **API Security**
+   - Rate limiting per user
+   - API key management
+   - Request signing
+
+### 7.3 Security Architecture
+
+```mermaid
+graph TB
+    Client[Client Browser]
+    Auth[Auth Service]
+    API[API Gateway]
+    LB[Load Balancer]
+
+    Client -->|HTTPS| LB
+    LB --> API
+    Client -->|JWT| Auth
+    API -->|Verify Token| Auth
+
+    subgraph "Access Control"
+        RBAC[Role-Based Access Control]
+    end
+
+    API --> RBAC
+```
+
+## 8. Scalability & Performance
+
+### 8.1 Performance Optimizations
+
+**Database**:
+- Indexed columns: id, transaction_number, email, contact_id
+- Query optimization with SQLAlchemy selectin loading
+- Connection pooling (pgbouncer for PostgreSQL)
+
+**Frontend**:
+- Code splitting with React.lazy
+- Memoization with React.memo
+- Debounced search inputs
+
+**API**:
+- Async route handlers
+- Pagination for list endpoints
+- Response caching (Redis future)
+
+### 8.2 Scalability Considerations
+
+| Component | Current Capacity | Scaling Strategy |
+|-----------|-----------------|-------------------|
+| API | 100 concurrent users | Horizontal scaling with load balancer |
+| Database | 1M transactions | Read replicas, connection pooling |
+| File Storage | Local filesystem | S3-compatible object storage |
+| Sessions | In-memory | Redis for distributed sessions |
+
+### 8.3 Load Testing Targets
+
+| Metric | Target |
+|--------|--------|
+| Concurrent Users | 100 |
+| Requests/sec | 500 |
+| API Response Time (p95) | < 500ms |
+| Page Load Time | < 3s |
+
+## 9. Diagrams
+
+### 9.1 System Sequence Diagram - Invoice Creation
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant F as Form Component
+    participant A as Axios Client
+    participant R as FastAPI Router
+    participant S as Transaction Service
+    participant D as Database
+
+    U->>F: Fill Invoice Form
+    F->>F: Calculate Subtotal
+    F->>A: POST /api/v2/transactions/sales
+    A->>R: HTTP Request
+    R->>R: Validate Request
+    R->>S: Process Transaction
+    S->>S: Generate Transaction Number
+    S->>S: Calculate Totals
+    S->>D: BEGIN TRANSACTION
+    S->>D: INSERT Transaction
+    S->>D: INSERT Transaction Items
+    S->>D: INSERT Journal Entries
+    D-->>S: COMMIT
+    S-->>R: Transaction Object
+    R-->>A: JSON Response (201)
+    A-->>F: Parsed Data
+    F-->>U: Success Message
+```
+
+### 9.2 Deployment Diagram
+
+```mermaid
+graph TB
+    subgraph "User Access"
+        B[Browser]
+    end
+
+    subgraph "Hosting Provider"
+        LB[Load Balancer]
+        W1[Web Server 1]
+        W2[Web Server 2]
+        DB[(Primary DB)]
+        REPL[(Read Replica)]
+    end
+
+    B --> LB
+    LB --> W1
+    LB --> W2
+    W1 --> DB
+    W2 --> DB
+    DB --> REPL
+```
+
+### 9.3 Class Diagram - Core Models
+
+```mermaid
+classDiagram
+    class Transaction {
+        +int id
+        +str type
+        +str transaction_number
+        +datetime transaction_date
+        +float total
+        +str status
+        +items: List~TransactionItem~
+        +calculate_total()
+    }
+
+    class TransactionItem {
+        +int id
+        +str description
+        +float quantity
+        +float unit_price
+        +float amount
+    }
+
+    class Contact {
+        +int id
+        +str name
+        +str email
+        +str contact_type
+    }
+
+    class Account {
+        +int id
+        +str code
+        +str name
+        +str account_type
+        +float balance
+    }
+
+    class JournalEntry {
+        +int id
+        +float debit
+        +float credit
+        +verify_balance()
+    }
+
+    Transaction "1" --> "*" TransactionItem : contains
+    Transaction "1" --> "*" JournalEntry : generates
+    Transaction "*" --> "1" Contact : belongs to
+    JournalEntry "*" --> "1" Account : references
+```
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: December 2024
+**Author**: Stefan Sutanto
+**Status**: Active Architecture
+6:["slug","ledger-system","d"]
+0:["6oPFjMLNrnpiSW9iZjb4a",[[["",{"children":["projects",{"children":[["slug","ledger-system","d"],{"children":["__PAGE__?{\"slug\":\"ledger-system\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":["projects",{"children":[["slug","ledger-system","d"],{"children":["__PAGE__",{},[["$L1",["$","$L2",null,{"project":{"slug":"ledger-system","title":"Ledger System","description":"A modern accounting and invoicing system inspired by Jurnal.id, featuring double-entry bookkeeping, invoice management, expense tracking, and a React dashboard.","techStack":["FastAPI","React","TypeScript","SQLAlchemy","PostgreSQL"],"domain":"Full Stack","date":"2024-12","status":"completed","github":"https://github.com/stefansutanto/ledger-system","summary":"\n# Ledger System\n\n## Overview\nA full-stack accounting application built with FastAPI backend and React frontend, implementing core accounting features including invoice management, expense tracking, and double-entry bookkeeping.\n\n## Key Features\n- 📄 Invoice Management - Create and track customer invoices\n- 💰 Expense Tracking - Record and categorize business expenses\n- 📋 Bills Management - Manage vendor bills and payments\n- 👥 Contact Management - Maintain customer and vendor databases\n- 💾 Journal Entries - Double-entry bookkeeping system\n- 📊 Dashboard - Overview of all transactions\n\n## Technical Highlights\n- RESTful API design with FastAPI\n- SQLAlchemy ORM for database abstraction\n- Type-safe frontend with TypeScript\n- Modular component architecture\n\n## Achievement\nSuccessfully implemented a complete accounting system with proper financial data integrity and validation.\n    ","brsContent":"$3","archContent":"$4"}}],null],null],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children","$6","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/portfolio-stefan-sutanto/_next/static/css/84c47f49352f348e.css","precedence":"next","crossOrigin":"$undefined"}]],["$","html",null,{"lang":"en","className":"dark","children":["$","body",null,{"className":"antialiased bg-neutral-950 text-neutral-200","children":["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]}]],null],null],["$L8",null]]]]
+8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Portfolio - Stefan Sutanto"}],["$","meta","3",{"name":"description","content":"Personal portfolio website"}]]
+1:null

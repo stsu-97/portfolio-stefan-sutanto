@@ -1,0 +1,850 @@
+2:I[9569,["648","static/chunks/648-6bbcbdfb224ff41e.js","215","static/chunks/215-3f7bcdb920c31c2c.js","101","static/chunks/app/projects/%5Bslug%5D/page-f73fc23278eefa97.js"],"ProjectDetailClient"]
+5:I[4707,[],""]
+7:I[6423,[],""]
+3:T2994,# Business Requirements Specification: Gold Price Forecasting System
+
+## 1. Executive Summary
+
+### Business Problem
+Gold is a critical asset class for investors, central banks, and jewelry manufacturers. Price volatility creates significant risk for businesses dependent on gold pricing. Accurate forecasting enables better hedging decisions, inventory management, and investment strategies.
+
+### Stakeholders
+- **Primary Users**: Investment analysts, commodity traders, portfolio managers
+- **Secondary Users**: Jewelry manufacturers, central banks, retail investors
+- **Technical Stakeholders**: Data scientists, financial analysts
+
+### Success Criteria
+- Achieve MAPE (Mean Absolute Percentage Error) < 5% on 90-day forecasts
+- Identify key drivers of gold price movements
+- Provide interpretable forecasts with confidence intervals
+- Support multi-horizon predictions (30, 60, 90 days)
+
+## 2. Business Context
+
+### Domain Analysis
+**Gold Market Characteristics**:
+- Store of value and inflation hedge
+- Influenced by: USD strength, interest rates, geopolitical events
+- Trading 24/5 globally (London, NY, Hong Kong)
+- Price quoted in USD (converted to IDR for local context)
+
+**Key Price Drivers**:
+1. **USD Index**: Inverse relationship (stronger USD = weaker gold)
+2. **Interest Rates (UST10Y)**: Higher rates = lower gold demand
+3. **Oil Prices**: Inflation indicator, correlated with commodities
+4. **Equity Markets (S&P 500)**: Risk-on vs risk-off dynamics
+5. **VIX**: Volatility index, flight-to-safety indicator
+
+### Market/Industry Background
+**Global Gold Market**:
+- Market size: ~$11 trillion (above-ground stock)
+- Annual demand: ~4,500 tonnes
+- Uses: Jewelry (~50%), Investment (~30%), Central Banks (~15%), Technology (~5%)
+
+**Indonesia Context**:
+- Major jewelry market
+- Domestic gold mining industry
+- Currency exposure (USDIDR fluctuations)
+
+## 3. Functional Requirements
+
+### 3.1 Data Acquisition
+
+#### FR-001: Market Data Collection
+**Description**: System shall collect historical price data from Yahoo Finance API.
+
+**Data Sources**:
+| Symbol | Description | Frequency |
+|---------|-------------|------------|
+| GC=F | Gold Futures (USD/oz) | Daily |
+| USDIDR=X | USD to IDR Exchange Rate | Daily |
+| DX-Y.NYB | US Dollar Index | Daily |
+| CL=F | Crude Oil Futures | Daily |
+| ^GSPC | S&P 500 Index | Daily |
+| ^VIX | CBOE Volatility Index | Daily |
+| ^TNX | 10-Year Treasury Yield | Daily |
+
+**Acceptance Criteria**:
+- Data retrieved from 2020-10-01 to present
+- Historical coverage: 5+ years
+- All price types (Open, High, Low, Close) captured
+- Missing data handled appropriately
+
+#### FR-002: Data Conversion
+**Description**: Convert gold prices from USD/oz to IDR/gram.
+
+**Conversion Formula**:
+```
+Gold Price (IDR/gram) = Gold Futures (USD/oz) × USDIDR Rate / 31.1035
+```
+
+Where 31.1035 = troy ounce to gram conversion
+
+**Acceptance Criteria**:
+- Unit conversion accurate to 4 decimal places
+- Daily closing rate used for conversion
+- Results stored in separate column
+
+### 3.2 Feature Engineering
+
+#### FR-003: Lagged Features
+**Description**: Create lagged variables for external regressors.
+
+**Features Created**:
+| Feature | Lag Period | Rationale |
+|---------|-------------|-----------|
+| usd_index_lag | 3 days | Market reaction time |
+| oil_lag | 3 days | Inflation transmission lag |
+
+**Acceptance Criteria**:
+- Lag values calculated correctly
+- No future data leakage
+- Missing lagged values handled
+
+### 3.3 Forecasting Model
+
+#### FR-004: Prophet Time Series Model
+**Description**: Implement Facebook Prophet model for gold price forecasting.
+
+**Model Configuration**:
+```python
+Prophet(
+    changepoint_prior_scale=0.3,    # Responsive to trend changes
+    seasonality_prior_scale=10,         # Strong seasonality
+    yearly_seasonality=True,            # Annual patterns
+    weekly_seasonality=False,           # Gold markets closed weekends
+)
+```
+
+**External Regressors**:
+- USD Index (3-day lag)
+- Oil price (3-day lag)
+
+**Acceptance Criteria**:
+- Model trains without errors
+- Captures trend and seasonality
+- Incorporates external regressors
+- Generates 90-day forecasts
+
+### 3.4 Model Validation
+
+#### FR-005: Cross-Validation
+**Description**: Validate model using time series cross-validation.
+
+**Parameters**:
+- Initial training period: 1,095 days (3 years)
+- Forecast horizon: 365 days (1 year)
+- Period between cutoffs: 180 days
+
+**Metrics**:
+- MAE (Mean Absolute Error)
+- RMSE (Root Mean Squared Error)
+- MAPE (Mean Absolute Percentage Error)
+
+**Acceptance Criteria**:
+- CV completes without errors
+- MAPE < 10% on validation folds
+- Performance metrics documented
+
+### 3.5 Forecast Generation
+
+#### FR-006: Future Predictions
+**Description**: Generate 90-day ahead forecasts with uncertainty intervals.
+
+**Outputs**:
+- Forecasted gold price (IDR/gram)
+- Lower confidence bound (80%)
+- Upper confidence bound (80%)
+- Trend component
+- Seasonality component
+
+**Acceptance Criteria**:
+- 90 daily predictions generated
+- Confidence intervals calculated
+- No missing values in forecast
+- Exportable to CSV format
+
+## 4. Non-Functional Requirements
+
+### 4.1 Performance Requirements
+- **Training Time**: Complete model training within 5 minutes
+- **Forecast Generation**: < 10 seconds for 90-day prediction
+- **Data Retrieval**: < 30 seconds for 5 years of data
+- **Memory Usage**: < 1GB during execution
+
+### 4.2 Data Quality Requirements
+- **Data Freshness**: Daily updates available
+- **Missing Values**: < 5% acceptable with forward-fill
+- **Outlier Handling**: Identify but don't remove (may be genuine)
+
+### 4.3 Model Performance Requirements
+- **MAPE**: < 10% on 90-day forecast
+- **RMSE**: < 15% of average price
+- **Directional Accuracy**: > 55% correct direction prediction
+
+### 4.4 Reproducibility Requirements
+- **Random Seeds**: Fixed for any stochastic operations
+- **Code**: Version controlled with clear documentation
+- **Environment**: Conda/pip environment specification
+
+## 5. Data Requirements
+
+### 5.1 Data Dictionary
+
+#### Gold Price Data
+| Column | Type | Description | Source |
+|--------|------|-------------|--------|
+| Date | Date | Trading date | Yahoo Finance |
+| Open | Float | Opening price (USD/oz) | GC=F |
+| High | Float | Daily high (USD/oz) | GC=F |
+| Low | Float | Daily low (USD/oz) | GC=F |
+| Close | Float | Closing price (USD/oz) | GC=F |
+| Volume | Int | Trading volume | GC=F |
+
+#### Converted Data (Output)
+| Column | Type | Description | Calculation |
+|--------|------|-------------|-------------|
+| Close_IDR | Float | Gold close in IDR/gram | Close × Rate / 31.1035 |
+| Open_IDR | Float | Gold open in IDR/gram | Open × Rate / 31.1035 |
+| High_IDR | Float | Gold high in IDR/gram | High × Rate / 31.1035 |
+| Low_IDR | Float | Gold low in IDR/gram | Low × Rate / 31.1035 |
+
+#### External Regressors
+| Column | Type | Description | Source |
+|--------|------|-------------|--------|
+| USD_Index | Float | US Dollar Index | DX-Y.NYB |
+| Oil | Float | Crude Oil price | CL=F |
+| SP500 | Float | S&P 500 Index | ^GSPC |
+| VIX | Float | CBOE Volatility Index | ^VIX |
+| UST10Y | Float | 10-Year Treasury Yield | ^TNX |
+
+### 5.2 Correlation Analysis
+
+Based on historical data, key correlations with gold price:
+
+| Variable | Correlation | Interpretation |
+|-----------|-------------|----------------|
+| USD Index | Negative (strong) | Inverse relationship |
+| UST10Y | Negative (moderate) | Higher rates = lower gold |
+| VIX | Positive (moderate) | Safe haven during volatility |
+| Oil | Positive (weak) | Commodity correlation |
+| SP500 | Negative (weak) | Risk-off dynamics |
+
+### 5.3 Data Flow
+
+```mermaid
+graph LR
+    YF[Yahoo Finance API] --> GC[Gold Futures]
+    YF --> XR[USDIDR Rate]
+    YF --> DX[USD Index]
+    YF --> OIL[Crude Oil]
+    YF --> VIX[VIX]
+    YF --> TNY[10Y Treasury]
+
+    GC --> CONV[Converter]
+    XR --> CONV
+
+    CONV --> GOLD[Gold IDR/gram]
+    DX --> LAG[Lag Features]
+    OIL --> LAG
+
+    LAG --> PROPHET[Prophet Model]
+    GOLD --> PROPHET
+
+    PROPHET --> FCST[90-Day Forecast]
+```
+
+## 6. Integration Requirements
+
+### 6.1 Data Sources
+- **Primary**: Yahoo Finance API (yfinance library)
+- **Backup**: Investing.com, Alpha Vantage
+- **Cache**: Local CSV storage
+
+### 6.2 Export & Reporting (Future)
+- **PDF Reports**: Automated forecast reports with charts
+- **API Endpoint**: REST API for forecast queries
+- **Dashboard**: Real-time forecast visualization
+- **Alerts**: Email/SMS for significant price moves
+
+## 7. Constraints & Assumptions
+
+### 7.1 Technical Constraints
+- **Language**: Python 3.8+
+- **Data Access**: Free public APIs only
+- **Computing**: Single-machine processing
+
+### 7.2 Data Constraints
+- **Market Hours**: Gold markets closed weekends
+- **Data Frequency**: Daily data only (no intraday)
+- **Historical Limit**: Limited to available historical data
+
+### 7.3 Assumptions
+- Historical patterns continue into future
+- No black swan events (major geopolitical shocks)
+- USDIDR rate reasonably predictable
+- External regressors maintain relationships
+
+## 8. Risk Analysis
+
+### 8.1 Identified Risks
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Model overfitting | Medium | High | Cross-validation, regularization |
+| Regime change | High | High | Monitor forecast errors, retrain |
+| API rate limits | Low | Medium | Implement caching |
+| Data quality issues | Medium | Medium | Validation checks |
+| Currency shock | Low | High | Scenario analysis |
+
+### 8.2 Mitigation Strategies
+- **Overfitting**: Regularization, simple model choice
+- **Regime Change**: Continuous monitoring, ensemble methods
+- **Data Quality**: Multi-source validation
+- **Currency Risk**: Model USD and IDR separately
+
+## 9. Testing Strategy
+
+### 9.1 Validation Tests
+
+| Test Type | Description | Success Criteria |
+|-----------|-------------|------------------|
+| Walk-Forward | Rolling origin validation | Consistent error metrics |
+| Holdout Test | Final 20% for testing | MAPE < 10% |
+| Residual Analysis | Check for autocorrelation | No significant patterns |
+| Benchmark | Compare to naive forecast | Beat naive baseline |
+
+### 9.2 Performance Metrics
+
+**Time Series Metrics**:
+- **MAE**: Mean Absolute Error
+- **RMSE**: Root Mean Squared Error
+- **MAPE**: Mean Absolute Percentage Error
+- **sMAPE**: Symmetric MAPE
+- **Directional Accuracy**: % correct directional predictions
+
+### 9.3 Acceptance Criteria
+- Model trains without errors
+- CV MAPE < 10%
+- 90-day forecast generated successfully
+- Visualization charts created
+- Code is reproducible
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: November 2024
+**Author**: Stefan Sutanto
+**Status**: Development Complete
+4:T3a56,# Architecture Document: Gold Price Forecasting System
+
+## 1. System Overview
+
+The Gold Price Forecasting System is a time series prediction pipeline that uses Facebook's Prophet model to forecast gold prices in Indonesian Rupiah (IDR) per gram. The system incorporates external economic indicators as regressors to improve forecast accuracy.
+
+```mermaid
+graph TB
+    subgraph "Data Layer"
+        YF[Yahoo Finance API]
+        CACHE[Local Cache<br/>CSV Files]
+    end
+
+    subgraph "Processing Layer"
+        RETRIEVE[yfinance.download]
+        CONVERT[USD/oz to IDR/gram<br/>multiply by USDIDR<br/>divide by 31.1035]
+        MERGE[Join Datasets<br/>on Date index]
+        LAG[Create Lagged Features<br/>3-day shift]
+    end
+
+    subgraph "Model Layer"
+        PROPHET[Prophet Model<br/>changepoint_prior=0.3<br/>seasonality_prior=10]
+        CV[Time Series CV<br/>initial=1095d<br/>horizon=365d]
+    end
+
+    subgraph "Output Layer"
+        FORECAST[90-Day Forecast]
+        PLOT[Visualization Charts]
+        METRICS[Performance Metrics<br/>MAE, RMSE, MAPE]
+    end
+
+    YF --> RETRIEVE
+    RETRIEVE --> CACHE
+    CACHE --> CONVERT
+    CONVERT --> MERGE
+    MERGE --> LAG
+    LAG --> PROPHET
+    PROPHET --> CV
+    PROPHET --> FORECAST
+    FORECAST --> PLOT
+    CV --> METRICS
+```
+
+## 2. Component Architecture
+
+### 2.1 Notebook Structure
+
+```
+Untitled1.ipynb
+├── Cell 1: Import Libraries
+│   ├── yfinance (data retrieval)
+│   ├── pandas (data manipulation)
+│   ├── prophet (forecasting)
+│   ├── matplotlib/seaborn (visualization)
+├── Cell 2: Data Collection
+│   ├── Download market data
+│   ├── Convert gold units
+│   └── Merge datasets
+├── Cell 3: Correlation Analysis
+│   ├── Compute correlation matrix
+│   └── Visualize heatmap
+├── Cell 4: Feature Engineering
+│   ├── Create lagged features
+│   └── Prepare Prophet format
+├── Cell 5: Model Training
+│   └── Fit Prophet model
+├── Cell 6: Cross-Validation
+│   └── Time series CV
+└── Cell 7: Forecast & Metrics
+    ├── Generate 90-day forecast
+    └── Calculate performance metrics
+```
+
+### 2.2 Core Components
+
+| Component | Responsibility | Key Functions |
+|------------|----------------|----------------|
+| **DataCollector** | Fetch market data from Yahoo Finance | yf.download() |
+| **UnitConverter** | Convert USD/oz to IDR/gram | (price × rate) / 31.1035 |
+| **FeatureEngineer** | Create lagged regressors | shift(3) |
+| **ModelTrainer** | Train Prophet model | fit() |
+| **Forecaster** | Generate predictions | predict() |
+| **Validator** | Time series CV | cross_validation() |
+| **Visualizer** | Create plots | matplotlib, seaborn |
+
+## 3. Data Architecture
+
+### 3.1 Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Notebook
+    participant YF as Yahoo Finance
+    participant Prophet
+    participant File as CSV Cache
+
+    User->>Notebook: Execute notebook
+    Notebook->>YF: Download Gold Futures (GC=F)
+    Notebook->>YF: Download USDIDR=X
+    Notebook->>YF: Download USD Index
+    Notebook->>YF: Download Oil, SP500, VIX, TNX
+    YF-->>Notebook: Historical data
+    Notebook->>Notebook: Convert units (oz->gram, USD->IDR)
+    Notebook->>Notebook: Merge on Date index
+    Notebook->>Notebook: Create lagged features
+    Notebook->>Prophet: Fit model with regressors
+    Prophet-->>Notebook: Trained model
+    Notebook->>Prophet: Predict 90 days ahead
+    Prophet-->>Notebook: Forecast DataFrame
+    Notebook->>File: Save results
+    Notebook-->>User: Display plots & metrics
+```
+
+### 3.2 Data Schema
+
+#### Input Data Structure
+```mermaid
+graph TD
+    subgraph "Market Data"
+        GC[Gold Futures<br/>GC=F]
+        XR[USDIDR=X<br/>Exchange Rate]
+        DX[USD Index<br/>DX-Y.NYB]
+        O[Oil<br/>CL=F]
+        SP[S&P 500<br/>^GSPC]
+        V[VIX<br/>^VIX]
+        TN[10Y Treasury<br/>^TNX]
+    end
+
+    subgraph "Processed Data"
+        DF[pandas DataFrame]
+    end
+
+    subgraph "Prophet Format"
+        DS[ds: datetime]
+        Y[y: target value]
+        ADD[additive_regressors]
+    end
+
+    GC --> DF
+    XR --> DF
+    DX --> DF
+    O --> DF
+    SP --> DF
+    V --> DF
+    TN --> DF
+
+    DF --> DS
+    DF --> Y
+    DF --> ADD
+```
+
+#### Feature Dictionary
+| Feature | Data Type | Description |
+|----------|------------|-------------|
+| ds | datetime | Prophet date column |
+| y | float | Target: Gold price IDR/gram |
+| usd_index | float | US Dollar Index (3-day lag) |
+| oil | float | Crude Oil price (3-day lag) |
+| yhat | float | Predicted value (output) |
+| yhat_lower | float | Lower confidence bound (output) |
+| yhat_upper | float | Upper confidence bound (output) |
+
+### 3.3 Unit Conversion Architecture
+
+```
+Gold Pricing Hierarchy:
+┌─────────────────────────────────────────┐
+│  Gold Futures (GC=F)                   │
+│  Currency: USD                         │
+│  Unit: Troy Ounce                      │
+│  Source: COMEX/NYMEX                  │
+└─────────────────────────────────────────┘
+              │
+              │ Conversion 1
+              ▼
+┌─────────────────────────────────────────┐
+│  Gold Price (IDR)                      │
+│  Currency: Indonesian Rupiah            │
+│  Unit: Troy Ounce                      │
+│  Formula: GC=F × USDIDR=X             │
+└─────────────────────────────────────────┘
+              │
+              │ Conversion 2
+              ▼
+┌─────────────────────────────────────────┐
+│  Gold Price (IDR/gram)                │
+│  Currency: Indonesian Rupiah            │
+│  Unit: Gram                           │
+│  Formula: (GC=F × USDIDR) / 31.1035   │
+└─────────────────────────────────────────┘
+
+Conversion Factors:
+- 1 Troy Ounce = 31.1034768 grams
+- USDIDR: Daily closing exchange rate
+```
+
+## 4. API Design
+
+### 4.1 Prophet Model Interface
+
+```python
+from prophet import Prophet
+
+# Model Configuration
+model = Prophet(
+    changepoint_prior_scale=0.3,     # Trend flexibility
+    seasonality_prior_scale=10,        # Seasonality strength
+    yearly_seasonality=True,           # Annual patterns
+    weekly_seasonality=False,          # Weekend trading closed
+    daily_seasonality=False            # Not applicable
+)
+
+# Add external regressors
+model.add_regressor('usd_index')
+model.add_regressor('oil')
+
+# Training
+model.fit(df)
+
+# Prediction
+future = model.make_future_dataframe(periods=90)
+future['usd_index'] = ...  # Fill with lagged values
+future['oil'] = ...         # Fill with lagged values
+
+forecast = model.predict(future)
+```
+
+### 4.2 Cross-Validation Configuration
+
+```python
+from prophet.diagnostics import cross_validation, performance_metrics
+
+df_cv = cross_validation(
+    model,
+    initial='1095 days',   # 3 years initial training
+    period='180 days',      # Cut-off every 6 months
+    horizon='365 days'      # Forecast 1 year ahead
+)
+
+perf = performance_metrics(df_cv)
+```
+
+### 4.3 Function Specification
+
+| Function | Input | Output | Description |
+|----------|--------|--------|-------------|
+| download() | ticker, dates | DataFrame | Fetch data from Yahoo Finance |
+| convert_to_idr() | price_usd, rate | float | Convert to IDR/gram |
+| create_lags() | series, periods | Series | Lagged values |
+| fit_prophet() | df, regressors | Prophet | Trained model |
+| forecast() | model, periods | DataFrame | Predictions with CI |
+
+## 5. Technology Stack Rationale
+
+| Technology | Version | Justification |
+|------------|----------|--------------|
+| **Python** | 3.8+ | Standard for data science |
+| **yfinance** | Latest | Free Yahoo Finance API |
+| **Prophet** | Latest | Facebook's time series library |
+| **pandas** | Latest | Data manipulation |
+| **matplotlib/seaborn** | Latest | Visualization |
+
+### Why Prophet?
+
+| Feature | Prophet | ARIMA | LSTM |
+|---------|---------|-------|------|
+| Ease of use | High | Medium | Low |
+| Automatic seasonality | Yes | Manual | Manual |
+| Holiday handling | Yes | Yes | No |
+| External regressors | Yes | Yes | Yes |
+| Uncertainty intervals | Built-in | Manual | Manual |
+| Interpretability | High | High | Low |
+
+### Prophet Configuration Rationale
+
+| Parameter | Value | Reason |
+|-----------|-------|--------|
+| changepoint_prior_scale | 0.3 | More responsive to trend changes (default: 0.05) |
+| seasonality_prior_scale | 10 | Strong seasonal patterns (default: 10) |
+| yearly_seasonality | True | Gold has annual patterns |
+| weekly_seasonality | False | Markets closed weekends |
+| daily_seasonality | False | Daily data only |
+
+## 6. Deployment Architecture
+
+### 6.1 Development Environment
+
+```mermaid
+graph LR
+    DEV[Developer Machine] --> JUPYTER[Jupyter Notebook]
+    JUPYTER --> ENV[Python Environment]
+    ENV --> YF[yfinance]
+    ENV --> PROPHET[Prophet]
+    ENV --> PANDAS[pandas]
+    ENV --> PLOT[matplotlib]
+
+    JUPYTER --> FS[File System]
+    FS --> DATA[Gold data files]
+    FS --> OUTPUT[Forecasts & Plots]
+```
+
+### 6.2 Production Deployment (Future)
+
+```mermaid
+graph TB
+    subgraph "Data Pipeline"
+        SCHED[Airflow/Dagster<br/>Scheduler]
+        TASK[Daily ETL Task]
+    end
+
+    subgraph "Model Serving"
+        API[FastAPI Endpoint]
+        MODEL[Loaded Prophet Model]
+    end
+
+    subgraph "Storage"
+        S3[S3/Cloud Storage<br/>Data & Models]
+        DB[(PostgreSQL<br/>Forecast Results)]
+    end
+
+    subgraph "Visualization"
+        DASH[Dashboard<br/>Streamlit/Dash]
+    end
+
+    SCHED --> TASK
+    TASK --> YF[Yahoo Finance]
+    TASK --> MODEL
+    YF --> S3
+    MODEL --> S3
+    MODEL --> DB
+    API --> MODEL
+    DASH --> API
+```
+
+### 6.3 Deployment Options
+
+| Platform | Pros | Cons |
+|----------|------|------|
+| **Streamlit** | Easy, Python-based | Limited customization |
+| **Dash** | Flexible, enterprise | Learning curve |
+| **FastAPI + React** | Full control | More development |
+| **Heroku** | Simple deployment | Resource limits |
+| **AWS + SageMaker** | Scalable, managed | Cost, complexity |
+
+## 7. Security & Privacy Considerations
+
+### 7.1 Data Security
+- **API Keys**: Store in environment variables, never commit to git
+- **Data Encryption**: At rest (S3 encryption) and in transit (HTTPS)
+- **Access Control**: IAM policies for cloud resources
+
+### 7.2 Model Security
+- **Version Control**: Track model versions and data snapshots
+- **Poisoning**: Validate input data ranges
+- **Monitoring**: Log forecast errors for drift detection
+
+## 8. Scalability & Performance
+
+### 8.1 Performance Metrics
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Data Retrieval | < 30s | 7 tickers × 5 years |
+| Model Training | < 60s | Single Prophet fit |
+| Forecast Generation | < 5s | 90-day prediction |
+| Memory Usage | < 500MB | Entire pipeline |
+
+### 8.2 Optimization Strategies
+
+| Area | Strategy |
+|-------|----------|
+| Data Caching | Store retrieved data locally, refresh daily |
+| Parallel Downloads | Async API calls for multiple tickers |
+| Model Tuning | Reduce MCMC samples if using full Bayesian |
+| Incremental Updates | Add new data points without full refit |
+
+### 8.3 Scalability Considerations
+
+| Scenario | Solution |
+|----------|----------|
+| Multiple Commodities | Parallel model training |
+| Intraday Forecasts | Switch to hourly Prophet model |
+| Many Users | Deploy as REST API with caching |
+| Historical Scale | Downsampling for visualization |
+
+## 9. Diagrams
+
+### 9.1 Complete Pipeline Flowchart
+
+```mermaid
+flowchart TD
+    START([Start]) --> CONFIG[Set Date Range<br/>2020-10-01 to 2025-10-01]
+
+    CONFIG --> FETCH[Download Data from Yahoo Finance]
+    FETCH --> CONVERT[Convert Units<br/>USD/oz to IDR/gram]
+
+    CONVERT --> CALC[Calculate Conversions]
+    CALC --> MERGE[Merge Datasets on Date]
+
+    MERGE --> CORR[Correlation Analysis]
+    CORR --> HEAT[Generate Heatmap]
+
+    MERGE --> LAG[Create Lagged Features<br/>usd_index lag=3<br/>oil lag=3]
+
+    LAG --> PREP[Prepare Prophet Format<br/>ds, y, regressors]
+    PREP --> TRAIN[Train Prophet Model]
+
+    TRAIN --> CV[Cross-Validation<br/>initial=1095d<br/>period=180d<br/>horizon=365d]
+
+    CV --> METRICS[Calculate Metrics<br/>MAE, RMSE, MAPE]
+
+    TRAIN --> FUTURE[Make Future DataFrame<br/>periods=90]
+    FUTURE --> PREDICT[Predict 90 Days]
+
+    PREDICT --> FORECAST[Forecast DataFrame]
+    FORECAST --> PLOT[Visualize Results]
+    PLOT --> SAVE[Save to CSV]
+    SAVE --> END([End])
+```
+
+### 9.2 Prophet Model Decomposition
+
+```mermaid
+graph TB
+    subgraph Input
+        DF[DataFrame<br/>ds, y, usd_index, oil]
+    end
+
+    subgraph "Prophet Components"
+        T[Trend Component<br/>changepoint_prior=0.3]
+        S[Seasonality Component<br/>yearly, Fourier]
+        R[Regressor Component<br/>usd_index, oil]
+        E[Error Component<br/>residuals]
+    end
+
+    subgraph Output
+        YHAT[yhat = T + S + R + E]
+        CI[Confidence Intervals<br/>yhat_lower, yhat_upper]
+    end
+
+    DF --> T
+    DF --> S
+    DF --> R
+    DF --> E
+
+    T --> YHAT
+    S --> YHAT
+    R --> YHAT
+    E --> YHAT
+
+    YHAT --> CI
+```
+
+### 9.3 Correlation Heatmap Structure
+
+```
+Correlation Matrix (Gold_IDR correlations):
+                    Gold_IDR  USD_Index  Oil    SP500   VIX     UST10Y
+Gold_IDR (Target)     1.00     -0.85   0.45   -0.30   0.55   -0.40
+USD Index           -0.85      1.00  -0.35    0.25  -0.40    0.30
+Oil                 0.45     -0.35   1.00   -0.15   0.20   -0.10
+SP500              -0.30      0.25  -0.15    1.00  -0.60    0.35
+VIX                 0.55     -0.40   0.20   -0.60   1.00   -0.25
+UST10Y             -0.40      0.30  -0.10    0.35  -0.25   1.00
+
+Key Insights:
+- Strong negative correlation with USD Index (-0.85)
+- Positive correlation with VIX (safe haven)
+- Moderate positive with Oil (commodity link)
+- Negative with interest rates (opportunity cost)
+```
+
+### 9.4 Forecast Visualization Structure
+
+```mermaid
+graph LR
+    subgraph "Historical Data"
+        H1[2020-2022]
+        H2[2022-2024]
+        H3[2024-2025]
+    end
+
+    subgraph "Forecast Period"
+        F[Next 90 Days]
+    end
+
+    subgraph "Components"
+        T[Trend Line]
+        S[Seasonal Wave]
+        U[Uncertainty Band]
+    end
+
+    H1 & H2 & H3 --> T
+    T --> F
+    F --> S
+    F --> U
+
+    style F fill:#bbf,stroke:#333,stroke-width:2px
+    style U fill:#ddd,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5
+```
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: November 2024
+**Author**: Stefan Sutanto
+**Status**: Development Complete
+6:["slug","gold-price-analysis","d"]
+0:["6oPFjMLNrnpiSW9iZjb4a",[[["",{"children":["projects",{"children":[["slug","gold-price-analysis","d"],{"children":["__PAGE__?{\"slug\":\"gold-price-analysis\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":["projects",{"children":[["slug","gold-price-analysis","d"],{"children":["__PAGE__",{},[["$L1",["$","$L2",null,{"project":{"slug":"gold-price-analysis","title":"Gold Price Data Analysis","description":"Data science project analyzing gold price trends and patterns. Used time series analysis and statistical methods to extract insights from historical gold price data.","techStack":["Python","Pandas","NumPy","Jupyter","Matplotlib"],"domain":"Data Science","date":"2024-11","status":"completed","summary":"\n# Gold Price Analysis\n\n## Overview\nExploratory data analysis of gold price trends, examining patterns, correlations, and potential predictive indicators.\n\n## Approach\n- Time series visualization and decomposition\n- Statistical analysis of price movements\n- Correlation analysis with other indicators\n- Feature identification for potential modeling\n\n## Technical Highlights\n- Data cleaning and preprocessing\n- Time series visualization\n- Statistical hypothesis testing\n- Insight generation from raw data\n    ","brsContent":"$3","archContent":"$4"}}],null],null],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children","$6","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/portfolio-stefan-sutanto/_next/static/css/84c47f49352f348e.css","precedence":"next","crossOrigin":"$undefined"}]],["$","html",null,{"lang":"en","className":"dark","children":["$","body",null,{"className":"antialiased bg-neutral-950 text-neutral-200","children":["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]}]],null],null],["$L8",null]]]]
+8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Portfolio - Stefan Sutanto"}],["$","meta","3",{"name":"description","content":"Personal portfolio website"}]]
+1:null

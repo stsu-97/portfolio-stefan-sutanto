@@ -1,0 +1,446 @@
+2:I[9569,["648","static/chunks/648-6bbcbdfb224ff41e.js","215","static/chunks/215-3f7bcdb920c31c2c.js","101","static/chunks/app/projects/%5Bslug%5D/page-f73fc23278eefa97.js"],"ProjectDetailClient"]
+6:I[4707,[],""]
+8:I[6423,[],""]
+3:T69c,
+# Visual Product Search Application
+
+## Overview
+A client-side web application that enables users to find products in a store by uploading photos. The app matches the uploaded image against a product inventory and displays the product's location on an interactive indoor map.
+
+## Key Features
+- 📷 Multiple Input Methods - File upload, camera capture, barcode scanning (extensible)
+- 🗺️ Interactive Map Display - Leaflet.js-powered indoor store navigation
+- 🔍 Image Matching - Similarity-based product matching
+- 🔌 Plugin Architecture - Easy to swap implementations via configuration
+- 📡 Event-Driven Communication - Decoupled components using pub/sub pattern
+
+## Technical Highlights
+- Zero backend requirements - runs entirely in the browser
+- Abstract Provider pattern for extensibility
+- JSON-based configuration system
+- Modular component architecture with no tight coupling
+- Designed for ML model integration (CLIP) ready
+
+## Architecture
+```
+App.js (Main Controller)
+    │
+    ├── EventBus (Event-Driven Communication)
+    │
+    ├── Input Providers
+    │   ├── FileUpload (Implemented)
+    │   ├── Camera (Extensible)
+    │   └── Barcode (Extensible)
+    │
+    ├── Matching Providers
+    │   ├── SimpleImage (Implemented)
+    │   └── CLIP (ML-ready)
+    │
+    └── Output Providers
+        ├── LeafletMap (Implemented)
+        ├── GoogleMaps (Extensible)
+        └── ListView (Extensible)
+```
+
+## Achievement
+Successfully implemented a modular, extensible system that demonstrates solid software architecture principles while solving a real-world retail navigation problem.
+    4:Tfee,# Business Requirements Specification: Visual Product Search Application
+
+## 1. Executive Summary
+
+### Business Problem
+Retail stores lose significant revenue due to customers unable to find products quickly. Studies show that 30% of customers leave stores without purchasing when they can't locate items, and average time spent searching is 15+ minutes per shopping trip.
+
+### Stakeholders
+- **Primary Users**: Retail customers shopping in-store
+- **Secondary Users**: Store managers, retail operations staff
+- **Technical Stakeholders**: Development team, store IT department
+
+### Success Criteria
+- Users can find product location in under 30 seconds
+- System works entirely client-side (no backend infrastructure required)
+- Matching accuracy above 70% for clear product photos
+- Easy deployment - just serve static files
+- Extensible architecture for future ML enhancements
+
+## 2. Business Context
+
+### Domain Analysis
+The retail technology sector is increasingly focused on bridging online and offline shopping experiences:
+
+- **In-store navigation**: Growing market, $2.3B by 2026
+- **Visual search**: 62% of Gen Z prefer visual over text search
+- **Self-service**: Customers prefer finding items independently vs. asking staff
+
+Key competitors include:
+- **Amazon Go**: Uses extensive camera infrastructure (expensive)
+- **Walmart App**: Product search but no indoor navigation
+- **Store-specific apps**: Fragmented, each store has different app
+
+### Market/Industry Background
+Traditional retailers struggle to compete with e-commerce convenience. In-store product finding solutions:
+- Expensive infrastructure-based systems (RFID, camera arrays)
+- Poor user experiences in current apps
+- Lack of standardized indoor navigation
+
+## 3. Functional Requirements
+
+### 3.1 Product Search
+
+#### FR-001: Image-Based Product Search
+- Users can upload or capture product photos
+- System returns list of matching products with similarity scores
+- Supports JPG, PNG, WebP formats
+- Maximum file size: 5MB
+
+#### FR-002: Product Selection
+- Users can select from top K matching results
+- System displays product details (name, department, location)
+- Visual indication of match confidence
+
+### 3.2 Location Display
+
+#### FR-003: Indoor Map Navigation
+- Display store floor plan with product locations
+- Interactive zoom and pan controls
+- Clear visual markers for product positions
+- Support for multi-floor stores (future)
+
+### 3.3 Input Methods
+
+#### FR-004: Multiple Input Channels
+- File upload from device
+- Camera capture (future)
+- Barcode scanning (future)
+- Voice command (future)
+
+### 3.4 Configuration
+
+#### FR-005: Admin Configuration
+- Store owners can upload product inventory
+- Map image can be customized per store
+- Matching threshold configurable
+- Easy switching between implementations
+
+## 4. Non-Functional Requirements
+
+### 4.1 Performance
+- Initial page load under 3 seconds
+- Image matching complete within 5 seconds
+- Map rendering under 2 seconds
+
+### 4.2 Usability
+- Zero learning curve - intuitive interface
+- Works on mobile and desktop browsers
+- No account registration required
+
+### 4.3 Maintainability
+- New input providers can be added in < 100 lines
+- Configuration changes require no code deployment
+- Clear API documentation for extending providers
+
+### 4.4 Scalability
+- Client-side processing (no server load)
+- Static file hosting sufficient
+- No database required
+
+## 5. Data Requirements
+
+### 5.1 Product Data
+- Product ID, name, image path
+- Department/category
+- Map coordinates (x, y)
+- In-stock status
+
+### 5.2 Map Data
+- Store floor plan image (SVG/PNG)
+- Coordinate system definition
+- Zone/department boundaries
+
+## 6. Technical Considerations
+
+### 6.1 Matching Algorithm
+- Phase 1: Color histogram comparison (implemented)
+- Phase 2: CLIP model integration (planned)
+- Configurable similarity threshold
+
+### 6.2 Privacy
+- No user data collection
+- No server communication required
+- Images processed entirely client-side
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Complete
+5:T20e5,# Architecture Document: Visual Product Search Application
+
+## 1. System Overview
+
+### 1.1 Purpose
+This document describes the architecture of a plugin-based visual product search application designed for extensibility and maintainability.
+
+### 1.2 Design Philosophy
+- **Plugin-based**: All major components are swappable via configuration
+- **Event-driven**: Components communicate through a central event bus
+- **Interface-first**: Abstract base classes define clear contracts
+- **Zero-backend**: Complete client-side operation
+
+## 2. High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        App.js                                │
+│                    (Main Controller)                         │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                  EventBus                            │   │
+│  │  (Event-Driven Communication)                        │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   Input      │    │   Matching   │    │   Output     │
+│   Providers  │    │   Providers  │    │   Providers  │
+├──────────────┤    ├──────────────┤    ├──────────────┤
+│ FileUpload   │    │ SimpleImage  │    │ LeafletMap   │
+│ Camera       │    │ CLIP         │    │ GoogleMaps   │
+│ Barcode      │    │              │    │ ListView     │
+└──────────────┘    └──────────────┘    └──────────────┘
+```
+
+## 3. Component Design
+
+### 3.1 EventBus (Core Communication)
+
+**Purpose**: Decouple all components using publish-subscribe pattern
+
+```javascript
+class EventBus {
+    on(event, callback)      // Subscribe
+    off(event, callback)     // Unsubscribe
+    emit(event, data)        // Publish
+}
+```
+
+**Key Events**:
+- `input:captured` - Image captured from input provider
+- `matching:complete` - Product matches found
+- `product:selected` - User selected a product
+- `output:ready` - Location display ready
+
+### 3.2 InputProvider (Abstract)
+
+**Interface**:
+```javascript
+class InputProvider {
+    constructor(eventBus)
+    async capture()              // Returns image data
+    getSupportedFormats()        // Returns array of MIME types
+    initialize(container)         // Sets up UI
+    destroy()                    // Cleanup (optional)
+}
+```
+
+**Implementations**:
+- `FileUploadInput` - File upload with drag & drop ✅
+- `CameraInput` - WebRTC camera capture 🚧
+- `BarcodeInput` - Barcode scanner 🚧
+
+### 3.3 MatchingProvider (Abstract)
+
+**Interface**:
+```javascript
+class MatchingProvider {
+    constructor(eventBus, config)
+    async findMatches(imageData, topK)  // Returns matches
+    initialize(products)                 // Setup with inventory
+    async addProduct(product)            // Add product (optional)
+    destroy()                            // Cleanup (optional)
+}
+```
+
+**Implementations**:
+- `SimpleImageMatching` - Color histogram comparison ✅
+- `CLIPMatcher` - ML-based embedding matching 🚧
+
+### 3.4 OutputProvider (Abstract)
+
+**Interface**:
+```javascript
+class OutputProvider {
+    constructor(eventBus, options)
+    async displayLocation(product)       // Show location
+    async highlightProduct(productId)    // Highlight
+    initialize(container)                 // Setup UI
+    clear()                              // Clear display
+    destroy()                            // Cleanup (optional)
+}
+```
+
+**Implementations**:
+- `LeafletMapOutput` - Interactive indoor map ✅
+- `GoogleMapsOutput` - Google Maps integration 🚧
+- `ListViewOutput` - Simple list view 🚧
+
+## 4. Data Flow
+
+### 4.1 Product Search Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Input
+    participant EventBus
+    participant Matching
+    participant Output
+
+    User->>Input: Upload photo
+    Input->>EventBus: emit('input:captured', imageData)
+    EventBus->>Matching: Handle image data
+    Matching->>EventBus: emit('matching:complete', matches)
+    EventBus->>Output: Display matches
+    Output->>User: Show products + locations
+    User->>Output: Click "View Location"
+    Output->>Output: Display on map
+```
+
+### 4.2 Configuration System
+
+```javascript
+// src/core/config.js
+export default {
+    input: {
+        provider: 'file-upload',  // 'camera', 'barcode'
+        options: {
+            maxFileSize: 5242880,
+            acceptedFormats: ['image/jpeg', 'image/png', 'image/webp']
+        }
+    },
+    matching: {
+        provider: 'simple',  // 'clip'
+        threshold: 0.7,
+        topK: 5
+    },
+    output: {
+        provider: 'leaflet-map',  // 'google-maps', 'list-view'
+        options: {
+            mapImage: '/data/store-map.svg',
+            defaultZoom: 1,
+            maxZoom: 4,
+            minZoom: 1
+        }
+    }
+}
+```
+
+## 5. Extension Pattern
+
+### 5.1 Adding a New Input Provider
+
+**Step 1**: Extend `InputProvider`
+```javascript
+class VoiceInput extends InputProvider {
+    getSupportedFormats() { return ['text/voice-command']; }
+    async capture() { /* ... */ }
+}
+```
+
+**Step 2**: Import in `App.js`
+```javascript
+import VoiceInput from '../modules/input/VoiceInput.js';
+```
+
+**Step 3**: Add to factory
+```javascript
+case 'voice':
+    this.inputProvider = new VoiceInput(this.eventBus);
+    break;
+```
+
+**Step 4**: Update config.js - DONE!
+
+## 6. Technology Stack
+
+- **Language**: Vanilla JavaScript (ES6+)
+- **Modules**: ES6 Modules (no bundler required)
+- **Mapping**: Leaflet.js
+- **Matching**: Canvas API for image processing
+- **Styling**: CSS3 with Flexbox/Grid
+- **Serving**: Any static file server
+
+## 7. Deployment Architecture
+
+```
+┌─────────────────┐
+│   Static Host   │
+│  (nginx/AWS S3) │
+└────────┬────────┘
+         │
+         ├── index.html
+         ├── src/
+         │   ├── core/
+         │   ├── modules/
+         │   └── ui/
+         └── data/
+             ├── products.json
+             └── store-map.svg
+```
+
+**No backend required!**
+
+## 8. Future Enhancements
+
+### 8.1 ML Integration (CLIP)
+
+```javascript
+class CLIPMatcher extends MatchingProvider {
+    async initialize(products) {
+        this.model = await loadCLIPModel();
+        this.embeddings = await Promise.all(
+            products.map(p => ({
+                id: p.id,
+                embedding: await this.model.encodeImage(p.imagePath)
+            }))
+        );
+    }
+
+    async findMatches(imageData, topK) {
+        const queryEmbedding = await this.model.encodeImage(imageData);
+        return this.embeddings
+            .map(e => ({
+                product: products.find(p => p.id === e.id),
+                score: cosineSimilarity(queryEmbedding, e.embedding)
+            }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, topK);
+    }
+}
+```
+
+### 8.2 Offline PWA
+
+- Service Worker for offline support
+- IndexedDB for product catalog caching
+- Background sync for analytics
+
+## 9. Design Patterns Used
+
+1. **Strategy Pattern** - Interchangeable algorithms (matching)
+2. **Factory Pattern** - Provider instantiation
+3. **Observer Pattern** - Event bus communication
+4. **Template Method** - Abstract base classes
+5. **Facade Pattern** - App.js simplifies complexity
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Complete
+7:["slug","product-location-recognition","d"]
+0:["6oPFjMLNrnpiSW9iZjb4a",[[["",{"children":["projects",{"children":[["slug","product-location-recognition","d"],{"children":["__PAGE__?{\"slug\":\"product-location-recognition\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":["projects",{"children":[["slug","product-location-recognition","d"],{"children":["__PAGE__",{},[["$L1",["$","$L2",null,{"project":{"slug":"product-location-recognition","title":"Visual Product Search Application","description":"A web application that matches uploaded product photos to a store inventory and displays their location on an indoor store map. Built with a plugin-based architecture for easy extensibility.","techStack":["JavaScript","ES6 Modules","Leaflet.js","Event-Driven Architecture","Plugin Pattern"],"domain":"Frontend","date":"2025-01","status":"completed","github":"https://github.com/stefansutanto/product-location-recognition","summary":"$3","brsContent":"$4","archContent":"$5"}}],null],null],null]},[null,["$","$L6",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children","$7","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L8",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L6",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L8",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/portfolio-stefan-sutanto/_next/static/css/84c47f49352f348e.css","precedence":"next","crossOrigin":"$undefined"}]],["$","html",null,{"lang":"en","className":"dark","children":["$","body",null,{"className":"antialiased bg-neutral-950 text-neutral-200","children":["$","$L6",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L8",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]}]],null],null],["$L9",null]]]]
+9:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Portfolio - Stefan Sutanto"}],["$","meta","3",{"name":"description","content":"Personal portfolio website"}]]
+1:null

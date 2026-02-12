@@ -1,0 +1,179 @@
+2:I[9569,["648","static/chunks/648-6bbcbdfb224ff41e.js","215","static/chunks/215-3f7bcdb920c31c2c.js","101","static/chunks/app/projects/%5Bslug%5D/page-f73fc23278eefa97.js"],"ProjectDetailClient"]
+5:I[4707,[],""]
+7:I[6423,[],""]
+3:T416,
+# Ledger Bookkeeping System
+
+## Overview
+A professional double-entry bookkeeping system designed for small businesses, featuring comprehensive financial management capabilities including chart of accounts, journal entries, and automated financial reporting.
+
+## Key Features
+- 📊 Chart of Accounts - Complete account management with type classification
+- 💼 Journal Entries - Double-entry system with automatic balance validation
+- 📈 Financial Reports - Trial Balance, Balance Sheet, and Income Statement
+- 🎯 Account Types - Asset, Liability, Equity, Revenue, and Expense categories
+- 📱 Dashboard - Real-time overview of financial metrics
+
+## Technical Highlights
+- RESTful API with FastAPI backend
+- Type-safe React frontend with TypeScript
+- SQLAlchemy ORM for database abstraction
+- Automatic balance validation for journal entries
+- SQLite database with PostgreSQL upgrade path
+
+## Achievement
+Successfully implemented a complete bookkeeping system with proper double-entry validation and comprehensive financial reporting.
+    4:T113f,# Business Requirements Specification: Ledger Bookkeeping System
+
+## 1. Executive Summary
+
+### Business Problem
+Small businesses and freelancers need affordable, easy-to-use bookkeeping software that maintains proper double-entry accounting standards without the complexity and cost of enterprise solutions.
+
+### Stakeholders
+- **Primary Users**: Small business owners, freelance accountants, bookkeepers
+- **Secondary Users**: Financial controllers, business consultants
+- **Technical Stakeholders**: Development team, system administrators
+
+### Success Criteria
+- Enable users to create and manage chart of accounts
+- Support double-entry journal entry validation (debits = credits)
+- Generate accurate financial statements (Trial Balance, Balance Sheet, Income Statement)
+- Provide real-time dashboard of financial position
+- Maintain data integrity with proper account relationships
+
+## 2. Business Context
+
+### Domain Analysis
+The small business accounting software market is underserved by:
+- **Enterprise solutions**: Too expensive ($50-200/month) and complex
+- **Spreadsheet solutions**: Error-prone, lack validation, no automation
+- **Simple expense trackers**: Lack proper double-entry bookkeeping
+
+### Key Features Required
+1. Chart of Accounts Management
+2. Journal Entry Creation with Validation
+3. Financial Statement Generation
+4. Real-time Financial Overview
+
+## 3. Functional Requirements
+
+### FR-001: Chart of Accounts Management
+**Description**: System shall allow users to create, read, update, and delete accounts with proper classification.
+
+**Account Types**:
+- Asset (Cash, Accounts Receivable, Inventory)
+- Liability (Accounts Payable, Loans)
+- Equity (Owner's Equity, Retained Earnings)
+- Revenue (Sales, Service Income)
+- Expense (Rent, Utilities, Salaries)
+
+**Acceptance Criteria**:
+- Unique account codes within each type
+- Hierarchical account structure
+- Balance tracking for each account
+
+### FR-002: Journal Entry Management
+**Description**: System shall facilitate creation of double-entry journal entries with automatic validation.
+
+**Validation Rules**:
+- Total debits must equal total credits
+- Each entry must have at least two accounts
+- Entry date must be within accounting period
+- Accounts must be active
+
+**Acceptance Criteria**:
+- Prevent imbalanced journal entries
+- Provide clear error messages for validation failures
+- Support multi-line entries
+- Automatic timestamp and audit trail
+
+### FR-003: Financial Reporting
+**Description**: System shall generate standard financial reports based on journal entries.
+
+**Reports**:
+1. Trial Balance - List of all account balances
+2. Balance Sheet - Financial position at a point in time
+3. Income Statement - Profitability over a period
+
+**Acceptance Criteria**:
+- Reports generated on-demand
+- Accurate calculations based on journal entries
+- Support for date range filtering
+- Export to PDF capability
+
+### FR-004: Dashboard
+**Description**: System shall provide real-time overview of key financial metrics.
+
+**Metrics Displayed**:
+- Total Assets
+- Total Liabilities
+- Current Revenue (MTD, YTD)
+- Current Expenses (MTD, YTD)
+- Net Income
+
+**Acceptance Criteria**:
+- Real-time updates with each journal entry
+- Visual representation with charts
+- Drill-down capability to view details
+
+## 4. Non-Functional Requirements
+
+### NFR-001: Performance
+- Dashboard load time < 2 seconds
+- Financial report generation < 5 seconds
+- Support up to 10,000 journal entries
+
+### NFR-002: Usability
+- Intuitive user interface
+- Clear error messages
+- Context-sensitive help
+
+### NFR-003: Data Integrity
+- ACID compliance for transactions
+- Audit trail for all entries
+- Automatic backups
+
+## 5. Technical Architecture
+
+### System Architecture
+```mermaid
+graph TB
+    subgraph "Frontend"
+        UI[React UI]
+        API_CLIENT[API Client]
+    end
+
+    subgraph "Backend"
+        ROUTES[API Routes]
+        SERVICES[Business Logic]
+        MODELS[Data Models]
+    end
+
+    subgraph "Database"
+        DB[(SQLite DB)]
+    end
+
+    UI --> API_CLIENT
+    API_CLIENT --> ROUTES
+    ROUTES --> SERVICES
+    SERVICES --> MODELS
+    MODELS --> DB
+```
+
+### Technology Stack
+- **Frontend**: React 18, TypeScript, Vite
+- **Backend**: FastAPI, Python 3.11+
+- **Database**: SQLite (production: PostgreSQL)
+- **ORM**: SQLAlchemy
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Development Complete
+6:["slug","ledger-bookkeeping","d"]
+0:["6oPFjMLNrnpiSW9iZjb4a",[[["",{"children":["projects",{"children":[["slug","ledger-bookkeeping","d"],{"children":["__PAGE__?{\"slug\":\"ledger-bookkeeping\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":["projects",{"children":[["slug","ledger-bookkeeping","d"],{"children":["__PAGE__",{},[["$L1",["$","$L2",null,{"project":{"slug":"ledger-bookkeeping","title":"Ledger Bookkeeping System","description":"A professional double-entry bookkeeping system featuring chart of accounts management, journal entries, and comprehensive financial reporting including trial balance, balance sheet, and income statement.","techStack":["FastAPI","React","TypeScript","SQLAlchemy","SQLite"],"domain":"Full Stack","date":"2025-01","status":"completed","github":"https://github.com/stefansutanto/ledger-bookkeeping","summary":"$3","brsContent":"$4"}}],null],null],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children","$6","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/portfolio-stefan-sutanto/_next/static/css/84c47f49352f348e.css","precedence":"next","crossOrigin":"$undefined"}]],["$","html",null,{"lang":"en","className":"dark","children":["$","body",null,{"className":"antialiased bg-neutral-950 text-neutral-200","children":["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]}]],null],null],["$L8",null]]]]
+8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Portfolio - Stefan Sutanto"}],["$","meta","3",{"name":"description","content":"Personal portfolio website"}]]
+1:null

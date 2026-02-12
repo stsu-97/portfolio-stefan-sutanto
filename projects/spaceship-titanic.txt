@@ -1,0 +1,798 @@
+2:I[9569,["648","static/chunks/648-6bbcbdfb224ff41e.js","215","static/chunks/215-3f7bcdb920c31c2c.js","101","static/chunks/app/projects/%5Bslug%5D/page-f73fc23278eefa97.js"],"ProjectDetailClient"]
+5:I[4707,[],""]
+7:I[6423,[],""]
+3:T2a20,# Business Requirements Specification: Spaceship Titanic Passenger Transport Prediction
+
+## 1. Executive Summary
+
+### Business Problem
+The Spaceship Titanic was an interstellar passenger liner that collided with a spacetime anomaly. During transportation, passengers were transported to another dimension, but approximately half were not transported to their destination. This project aims to predict which passengers were successfully transported based on passenger attributes and cabin information.
+
+### Stakeholders
+- **Primary Users**: Space transport operators, safety analysts
+- **Secondary Users**: Rescue mission coordinators, fleet operations managers
+- **Technical Stakeholders**: Data scientists, ML engineers
+
+### Success Criteria
+- Achieve ROC-AUC score > 0.75 on test predictions
+- Identify key factors affecting transport success
+- Provide interpretable model for operational insights
+- Support batch prediction processing for all passengers
+
+## 2. Business Context
+
+### Domain Analysis
+**Kaggle Competition Context**:
+- Playground Series: Spaceship Titanic
+- Binary classification task (Transported: True/False)
+- Competition format: Tabular data prediction
+- Metric: Accuracy (competition standard)
+
+**Dataset Background**:
+- ~8,700 training passengers with labels
+- ~4,300 test passengers for prediction
+- 14 features covering demographics, cabin, and spending
+
+**Business Analogy**: Similar to airline customer prediction systems where predicting passenger outcomes is crucial for:
+- Safety analysis and risk mitigation
+- Resource allocation for rescue operations
+- Understanding transport failure patterns
+- Fleet operational improvements
+
+### Market/Industry Background
+**Space Tourism Market** (Emerging Industry):
+- Projected $1.3 trillion industry by 2030
+- Multiple companies (SpaceX, Blue Origin, Virgin Galactic)
+- Safety and reliability are paramount concerns
+
+**ML in Transportation Safety**:
+- Predictive maintenance for aircraft/spacecraft
+- Passenger risk profiling for safety
+- Incident prediction and prevention
+- Resource optimization for emergency response
+
+## 3. Functional Requirements
+
+### 3.1 Data Analysis & Understanding
+
+#### FR-001: Exploratory Data Analysis
+**Description**: Analyze dataset structure, missing values, and feature distributions.
+
+**Key Features**:
+| Feature Type | Columns |
+|--------------|---------|
+| Demographics | HomePlanet, CryoSleep, Age, VIP |
+| Location | Cabin (Deck/Num/Side), Destination |
+| Spending | RoomService, FoodCourt, ShoppingMall, Spa, VRDeck |
+| Identification | PassengerId (Group/Number), Name |
+
+**Acceptance Criteria**:
+- Missing value analysis completed
+- Feature distributions documented
+- Correlation analysis performed
+- Outliers identified and documented
+
+### 3.2 Data Preprocessing
+
+#### FR-002: Feature Engineering
+**Description**: Transform raw features into model-ready inputs.
+
+**Key Transformations**:
+1. **Cabin Parsing**: Split Cabin into Deck, Number, Side
+2. **PassengerId Parsing**: Extract Group and Number
+3. **Categorical Encoding**: Label/One-hot encoding
+4. **Missing Value Imputation**: Strategy per feature type
+5. **Feature Selection**: Remove irrelevant features
+
+**Acceptance Criteria**:
+- Cabin split into 3 components
+- Passenger group identification complete
+- Categorical features properly encoded
+- Missing values handled appropriately
+
+### 3.3 Model Development
+
+#### FR-003: Classification Model Training
+**Description**: Train machine learning model to predict transport status.
+
+**Model Options**:
+- **Primary**: Gradient Boosting (XGBoost/LightGBM/CatBoost)
+- **Alternatives**: Random Forest, Neural Networks
+- **Ensemble**: Model stacking/averaging
+
+**Training Strategy**:
+- Cross-validation (5-fold stratified)
+- Hyperparameter optimization
+- Feature importance analysis
+- Calibration assessment
+
+**Acceptance Criteria**:
+- CV accuracy > 75%
+- Model converges without warnings/errors
+- Feature importance values extracted
+- Model serializable for prediction
+
+### 3.4 Prediction & Evaluation
+
+#### FR-004: Test Set Prediction
+**Description**: Generate predictions for all test passengers.
+
+**Process**:
+1. Load trained model
+2. Preprocess test data (same as training)
+3. Generate probability predictions
+4. Convert to binary labels
+5. Export to submission format
+
+**Acceptance Criteria**:
+- All passenger IDs included
+- Predictions are boolean (True/False)
+- Submission matches format requirements
+
+#### FR-005: Model Interpretation
+**Description**: Provide insights into model decisions.
+
+**Deliverables**:
+- Feature importance ranking
+- SHAP values for local explanations
+- Prediction confidence intervals
+- Segment-wise accuracy analysis
+
+**Acceptance Criteria**:
+- Top 10 important features identified
+- Direction of feature effects documented
+- High-risk passenger segments identified
+
+## 4. Non-Functional Requirements
+
+### 4.1 Performance Requirements
+- **Training Time**: Complete within 10 minutes
+- **Inference Time**: < 50ms per prediction
+- **Memory Usage**: < 2GB during training
+- **Batch Processing**: Support 10K+ predictions
+
+### 4.2 Data Quality Requirements
+- **Missing Values**: < 25% acceptable per feature
+- **Data Types**: Proper conversion (numeric, categorical)
+- **Duplicates**: Remove duplicate passenger records
+
+### 4.3 Model Performance Requirements
+- **Accuracy**: > 75% on validation set
+- **Precision**: > 70% (minimize false positives)
+- **Recall**: > 70% (minimize false negatives)
+- **AUC-ROC**: > 0.80
+
+### 4.4 Reproducibility Requirements
+- **Random Seeds**: Fixed seeds for all stochastic operations
+- **Dependencies**: Documented via requirements.txt
+- **Code**: Clean, commented, version-controlled
+
+## 5. Data Requirements
+
+### 5.1 Data Dictionary
+
+#### Identification Features
+| Column | Type | Description | Missing |
+|--------|------|-------------|---------|
+| PassengerId | String | gggg_pp where gggg=group, pp=number | No |
+| Name | String | Passenger full name | Yes |
+
+#### Demographic Features
+| Column | Type | Description | Missing |
+|--------|------|-------------|---------|
+| HomePlanet | Categorical | Planet of departure (Earth, Europa, Mars) | Yes |
+| CryoSleep | Boolean | Passenger in cryosleep | Yes |
+| Age | Numeric | Passenger age | Yes |
+| VIP | Boolean | Paid for VIP service | Yes |
+
+#### Location Features
+| Column | Type | Description | Missing |
+|--------|------|-------------|---------|
+| Cabin | String | Cabin designation (Deck/Num/Side) | Yes |
+| Destination | Categorical | Destination planet | Yes |
+
+#### Spending Features (Amenities)
+| Column | Type | Description | Missing |
+|--------|------|-------------|---------|
+| RoomService | Numeric | Amount billed at Room Service | Yes |
+| FoodCourt | Numeric | Amount billed at Food Court | Yes |
+| ShoppingMall | Numeric | Amount billed at Shopping Mall | Yes |
+| Spa | Numeric | Amount billed at Spa | Yes |
+| VRDeck | Numeric | Amount billed at VR Deck | Yes |
+
+#### Target Variable
+| Column | Type | Description | Missing |
+|--------|------|-------------|---------|
+| Transported | Boolean | Successfully transported to destination | No |
+
+### 5.2 Data Relationships
+
+```mermaid
+graph TB
+    Passenger[Passenger] --> Home[HomePlanet]
+    Passenger --> Dest[Destination]
+    Passenger --> Cabin[Cabin<br/>Deck/Num/Side]
+    Passenger --> Status[CryoSleep?]
+    Passenger --> Status2[VIP?]
+
+    Passenger --> Spend1[RoomService]
+    Passenger --> Spend2[FoodCourt]
+    Passenger --> Spend3[ShoppingMall]
+    Passenger --> Spend4[Spa]
+    Passenger --> Spend5[VRDeck]
+
+    Passenger --> Result{Transported?}
+
+    style Result fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+### 5.3 Cabin Structure
+
+```
+Cabin Format: Deck/Number/Side
+Example: B/0/P
+
+Decks: A, B, C, D, E, F, G, T
+Number: Cabin number (0-1894)
+Side: P (Port) or S (Starboard)
+```
+
+## 6. Integration Requirements
+
+### 6.1 Model Deployment (Future)
+- **REST API**: Endpoint for single and batch predictions
+- **Cloud Deployment**: AWS SageMaker, GCP AI Platform
+- **Monitoring**: Model drift detection, performance tracking
+
+### 6.2 Data Pipeline Integration (Future)
+- **Spacecraft Systems**: Real-time passenger data feed
+- **Mission Control**: Integration with operations dashboard
+- **Rescue Coordination**: API for emergency response teams
+
+## 7. Constraints & Assumptions
+
+### 7.1 Technical Constraints
+- **Competition Deadline**: Fixed submission window
+- **Computing Resources**: Limited to standard Kaggle kernels
+- **Model Size**: Must fit in memory constraints
+
+### 7.2 Data Constraints
+- **Synthetic Data**: Dataset is fictional (competition data)
+- **Missing Values**: Significant missing data (~2-25% per feature)
+- **Imbalanced Classes**: Slight imbalance in target variable
+
+### 7.3 Assumptions
+- Training data representative of test distribution
+- No significant concept drift between datasets
+- Passenger group behavior (families travel together)
+
+## 8. Risk Analysis
+
+### 8.1 Identified Risks
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Overfitting to training data | Medium | High | Cross-validation, regularization |
+| High missing value impact | High | Medium | Careful imputation strategy |
+| Feature leakage | Low | Critical | Strict train/test separation |
+| Poor generalization | Medium | High | Ensemble methods, feature selection |
+| Group leakage | Medium | Medium | Group-aware CV splitting |
+
+### 8.2 Mitigation Strategies
+- **Overfitting**: Early stopping, dropout (if using NNs), regularization
+- **Missing Values**: Feature-specific imputation (median/mode/marker)
+- **Feature Leakage**: Audit feature engineering pipeline
+- **Generalization**: Use multiple model types, ensemble
+- **Group Effects**: Include group size as feature
+
+## 9. Testing Strategy
+
+### 9.1 Validation Strategy
+
+| Test Type | Description | Success Criteria |
+|-----------|-------------|------------------|
+| K-Fold CV | 5-fold stratified cross-validation | Accuracy > 75% |
+| Group CV | Group-aware splitting to prevent leakage | Consistent with K-Fold |
+| Holdout Test | 20% held from training | Similar to CV performance |
+
+### 9.2 Performance Metrics
+
+**Primary Metrics**:
+- **Accuracy**: Overall correctness (competition metric)
+- **ROC-AUC**: Ranking capability
+
+**Secondary Metrics**:
+- **Precision**: True positives / Predicted positives
+- **Recall**: True positives / Actual positives
+- **F1-Score**: Harmonic mean of precision/recall
+- **Confusion Matrix**: Detailed error analysis
+
+### 9.3 Acceptance Criteria
+- Model trains successfully without errors
+- Validation accuracy > 75%
+- All test predictions generated
+- Submission format matches requirements
+- Code is reproducible
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: December 2024
+**Author**: Stefan Sutanto
+**Status**: Kaggle Competition Project
+4:T2c97,# Architecture Document: Spaceship Titanic Passenger Transport Prediction
+
+## 1. System Overview
+
+The Spaceship Titanic prediction system is a binary classification machine learning pipeline designed to predict whether passengers were successfully transported during a spacetime anomaly incident. The system processes passenger demographic, location, and spending data to generate transport predictions.
+
+```mermaid
+graph TB
+    subgraph "Data Layer"
+        TRAIN[train.csv<br/>~8,700 passengers]
+        TEST[test.csv<br/>~4,300 passengers]
+        SUB[sample_submission.csv]
+    end
+
+    subgraph "Processing Layer"
+        LOAD[Data Loader]
+        PARSE[Feature Parsing<br/>Cabin, PassengerId]
+        IMP[Missing Value<br/>Imputation]
+        ENC[Encoding<br/>Label/One-Hot]
+    end
+
+    subgraph "Model Layer"
+        CV[Cross-Validation<br/>5-Fold Stratified]
+        MODEL[Classifier<br/>Gradient Boosting]
+    end
+
+    subgraph "Output Layer"
+        PRED[Predictions]
+        FILE[submission.csv]
+    end
+
+    TRAIN --> LOAD
+    TEST --> LOAD
+    LOAD --> PARSE
+    PARSE --> IMP
+    IMP --> ENC
+    ENC --> CV
+    CV --> MODEL
+    MODEL --> PRED
+    PRED --> FILE
+```
+
+## 2. Component Architecture
+
+### 2.1 Pipeline Structure
+
+The prediction pipeline follows a standard machine learning workflow:
+
+```
+spaceship-titanic/
+├── Data Input/
+│   ├── train.csv
+│   ├── test.csv
+│   └── sample_submission.csv
+├── Processing/
+│   ├── Feature Engineering
+│   ├── Missing Value Handling
+│   └── Encoding
+├── Modeling/
+│   ├── Model Selection
+│   ├── Hyperparameter Tuning
+│   └── Cross-Validation
+└── Output/
+    └── submission.csv
+```
+
+### 2.2 Core Components
+
+| Component | Responsibility | Key Operations |
+|------------|----------------|----------------|
+| **DataLoader** | Load CSV files | pandas.read_csv |
+| **FeatureEngineer** | Create derived features | Cabin parsing, Group extraction |
+| **Imputer** | Handle missing values | Median/mode imputation |
+| **Encoder** | Convert categorical to numeric | LabelEncoder, OneHotEncoder |
+| **ModelTrainer** | Train classifier | fit(), predict() |
+| **Predictor** | Generate test predictions | predict_proba() |
+
+## 3. Data Architecture
+
+### 3.1 Data Pipeline
+
+```mermaid
+flowchart LR
+    subgraph Raw
+        T[train.csv]
+        V[test.csv]
+    end
+
+    subgraph Features
+        D1[Demographics<br/>HomePlanet, Age, CryoSleep, VIP]
+        D2[Location<br/>Cabin, Destination]
+        D3[Spending<br/>RoomService, FoodCourt, Spa, VRDeck]
+        D4[ID<br/>PassengerId, Name]
+    end
+
+    subgraph Engineering
+        P1[Cabin: Deck/Num/Side]
+        P2[PassengerId: Group/Num]
+        P3[TotalSpend: Sum amenities]
+        P4[GroupSize: Count per group]
+    end
+
+    subgraph Modeling
+        X[Feature Matrix X]
+        Y[Target y]
+    end
+
+    T --> D1 & D2 & D3 & D4
+    V --> D1 & D2 & D3 & D4
+    D2 --> P1 & P4
+    D4 --> P2
+    D3 --> P3
+    P1 & P2 & P3 & P4 --> X
+    T --> Y
+```
+
+### 3.2 Feature Schema
+
+#### Cabin Parsing
+```mermaid
+graph LR
+    A[Cabin String<br/>B/0/P] --> B[Deck<br/>B]
+    A --> C[Number<br/>0]
+    A --> D[Side<br/>P=Port, S=Starboard]
+```
+
+#### Passenger Group Structure
+```
+PassengerId Format: gggg_pp
+- gggg: Group number (family/group traveling together)
+- pp: Individual number within group
+
+Example: 0001_01 (Group 0001, Person 01)
+         0001_02 (Group 0001, Person 02)
+```
+
+### 3.3 Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    PASSENGER ||--o| CABIN : stays_in
+    PASSENGER ||--o| SPENDING : has_charges
+    PASSENGER }o--|| GROUP : belongs_to
+
+    PASSENGER {
+        string PassengerId PK
+        string Name
+        string HomePlanet
+        boolean CryoSleep
+        float Age
+        boolean VIP
+        string Destination
+        boolean Transported
+    }
+
+    CABIN {
+        string Deck
+        int Number
+        string Side
+    }
+
+    SPENDING {
+        float RoomService
+        float FoodCourt
+        float ShoppingMall
+        float Spa
+        float VRDeck
+    }
+
+    GROUP {
+        int GroupId
+        int Size
+    }
+```
+
+## 4. API Design
+
+### 4.1 Model Interface
+
+```python
+# Prediction API Interface
+class SpaceshipTitanicPredictor:
+    def __init__(self, model_path: str):
+        """Load trained model"""
+
+    def preprocess(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Apply feature engineering"""
+
+    def predict(self, data: pd.DataFrame) -> np.ndarray:
+        """Generate transport predictions"""
+
+    def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
+        """Generate prediction probabilities"""
+```
+
+### 4.2 Model Specifications
+
+#### Recommended Model Configuration
+
+```python
+# LightGBM Classifier (Recommended)
+LGBMClassifier(
+    n_estimators=1000,
+    learning_rate=0.05,
+    num_leaves=31,
+    max_depth=6,
+    min_child_samples=20,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    random_state=42
+)
+
+# Alternative: XGBoost
+XGBClassifier(
+    n_estimators=1000,
+    learning_rate=0.05,
+    max_depth=6,
+    min_child_weight=1,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    random_state=42
+)
+```
+
+### 4.3 Feature Importance Categories
+
+```mermaid
+pie title Feature Categories by Count
+    "Demographics" : 4
+    "Location" : 4
+    "Spending" : 5
+    "Identification" : 2
+    "Engineered" : 4
+```
+
+## 5. Technology Stack Rationale
+
+| Technology | Purpose | Justification |
+|------------|----------|--------------|
+| **Python** | Core language | ML ecosystem standard |
+| **pandas** | Data manipulation | Efficient tabular data handling |
+| **numpy** | Numerical computing | Fast array operations |
+| **scikit-learn** | ML utilities | Preprocessing, metrics, CV |
+| **LightGBM/XGBoost** | Classifier | Best accuracy for tabular data |
+| **Jupyter** | Development | Iterative exploration |
+
+### Why Gradient Boosting?
+
+| Factor | LightGBM | XGBoost | CatBoost |
+|--------|-----------|----------|----------|
+| Speed | Fastest | Fast | Medium |
+| Accuracy | High | High | High |
+| Categorical | Manual | Manual | Native |
+| Memory | Low | Medium | High |
+| Best For | Large data | Balanced | Cat-heavy |
+
+## 6. Deployment Architecture
+
+### 6.1 Development Setup
+
+```mermaid
+graph LR
+    DEV[Developer Machine] --> JUPYTER[Jupyter Notebook]
+    JUPYTER --> PIP[pip install]
+    PIP --> SK[scikit-learn]
+    PIP --> LGB[LightGBM]
+    PIP --> PD[pandas]
+
+    JUPYTER --> FS[File System]
+    FS --> TRAIN[train.csv]
+    FS --> TEST[test.csv]
+    FS --> SUB[submission.csv]
+```
+
+### 6.2 Production Deployment (Future)
+
+```mermaid
+graph TB
+    subgraph "API Layer"
+        FAST[FastAPI/Flask]
+    end
+
+    subgraph "Model Serving"
+        MODEL[Loaded Model<br/>.pkl/.txt]
+    end
+
+    subgraph "Processing"
+        PREP[Preprocessing Pipeline]
+    end
+
+    CLIENT[Client App] --> FAST
+    FAST --> PREP
+    PREP --> MODEL
+    MODEL --> FAST
+    FAST --> CLIENT
+```
+
+### 6.3 Cloud Deployment Options
+
+| Platform | Pros | Cons |
+|----------|------|------|
+| AWS SageMaker | Integrated, scalable | Cost |
+| Google Cloud AI | TensorFlow integration | Learning curve |
+| Azure ML | Enterprise features | Complexity |
+| Heroku + API | Simple | Limited scaling |
+
+## 7. Security & Privacy Considerations
+
+### 7.1 Data Privacy
+- **Fictional Data**: No real PII concerns (competition data)
+- **Production Considerations**: If applied to real passenger data:
+  - GDPR compliance for EU passengers
+  - Data encryption at rest and in transit
+  - Access logging and audit trails
+
+### 7.2 Model Security
+- **Input Validation**: Validate all input features
+- **Rate Limiting**: Prevent API abuse
+- **Model Versioning**: Track model iterations
+
+## 8. Scalability & Performance
+
+### 8.1 Performance Targets
+
+| Metric | Target |
+|--------|--------|
+| Training Time | < 5 minutes |
+| Inference Time | < 10ms per prediction |
+| Batch Prediction | 10K predictions in < 1 second |
+| Memory Usage | < 1GB |
+
+### 8.2 Scalability Considerations
+
+| Scenario | Strategy |
+|----------|----------|
+| Larger datasets | Use Dask for distributed computing |
+| Real-time predictions | Model serving with ONNX |
+| Multi-model deployment | A/B testing framework |
+
+## 9. Diagrams
+
+### 9.1 End-to-End Pipeline
+
+```mermaid
+flowchart TD
+    START([Start]) --> LOAD1[Load train.csv]
+    START --> LOAD2[Load test.csv]
+
+    LOAD1 --> EDA[Exploratory Data Analysis]
+    EDA --> FEATURE[Feature Engineering]
+
+    FEATURE --> PARSE1[Parse Cabin: Deck/Num/Side]
+    FEATURE --> PARSE2[Parse PassengerId: Group/Num]
+    FEATURE --> AGG[Calculate Total Spending]
+
+    PARSE1 --> IMP[Handle Missing Values]
+    PARSE2 --> IMP
+    AGG --> IMP
+
+    IMP --> ENC[Encode Categorical Features]
+    ENC --> SPLIT[Train/Validation Split]
+
+    SPLIT --> TRAIN[Train Model]
+    TRAIN --> EVAL[Evaluate on Validation]
+    EVAL --> TUNE{Tune Hyperparameters?}
+    TUNE -->|Yes| TRAIN
+    TUNE -->|No| PRED[Predict on Test Set]
+    PRED --> EXPORT[Export submission.csv]
+    EXPORT --> END([End])
+```
+
+### 9.2 Feature Engineering Flow
+
+```mermaid
+graph TD
+    subgraph "Raw Features"
+        CABIN[Cabin<br/>B/0/P]
+        PID[PassengerId<br/>0001_01]
+        SP1[RoomService]
+        SP2[FoodCourt]
+        SP3[ShoppingMall]
+        SP4[Spa]
+        SP5[VRDeck]
+    end
+
+    subgraph "Engineered Features"
+        DECK[Deck<br/>B]
+        CNUM[CabinNum<br/>0]
+        SIDE[Side<br/>Port]
+        GRP[GroupId<br/>0001]
+        PNUM[PersonNum<br/>01]
+        TOTAL[TotalSpending<br/>Sum of amenities]
+        NOSPEND[NoSpending<br/>Binary indicator]
+    end
+
+    CABIN --> DECK
+    CABIN --> CNUM
+    CABIN --> SIDE
+    PID --> GRP
+    PID --> PNUM
+    SP1 & SP2 & SP3 & SP4 & SP5 --> TOTAL
+    TOTAL --> NOSPEND
+```
+
+### 9.3 Model Training Flow
+
+```mermaid
+sequenceDiagram
+    participant Notebook
+    participant Data
+    participant Model
+    participant CV
+
+    Notebook->>Data: Load train.csv
+    Data-->>Notebook: DataFrame
+
+    Notebook->>Notebook: Feature Engineering
+    Notebook->>CV: Initialize 5-Fold Stratified CV
+
+    loop For each fold
+        CV->>Data: Get train/val indices
+        CV->>Model: train(X_train, y_train)
+        Model-->>CV: Fitted model
+        CV->>Model: predict_proba(X_val)
+        Model-->>CV: Predictions
+    end
+
+    CV-->>Notebook: OOF predictions & scores
+    Notebook->>Model: Train on full data
+    Notebook->>Model: predict(X_test)
+    Model-->>Notebook: Test predictions
+    Notebook->>Notebook: Export submission
+```
+
+### 9.4 Cross-Validation Schema
+
+```mermaid
+graph TB
+    subgraph "Fold 1"
+        F1T[Train<br/>Folds 2,3,4,5]
+        F1V[Validate<br/>Fold 1]
+    end
+    subgraph "Fold 2"
+        F2T[Train<br/>Folds 1,3,4,5]
+        F2V[Validate<br/>Fold 2]
+    end
+    subgraph "Fold 3"
+        F3T[Train<br/>Folds 1,2,4,5]
+        F3V[Validate<br/>Fold 3]
+    end
+    subgraph "Fold 4"
+        F4T[Train<br/>Folds 1,2,3,5]
+        F4V[Validate<br/>Fold 4]
+    end
+    subgraph "Fold 5"
+        F5T[Train<br/>Folds 1,2,3,4]
+        F5V[Validate<br/>Fold 5]
+    end
+
+    style F1V fill:#f9f,stroke:#333,stroke-width:2px
+    style F2V fill:#f9f,stroke:#333,stroke-width:2px
+    style F3V fill:#f9f,stroke:#333,stroke-width:2px
+    style F4V fill:#f9f,stroke:#333,stroke-width:2px
+    style F5V fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: December 2024
+**Author**: Stefan Sutanto
+**Status**: Kaggle Competition Project
+6:["slug","spaceship-titanic","d"]
+0:["6oPFjMLNrnpiSW9iZjb4a",[[["",{"children":["projects",{"children":[["slug","spaceship-titanic","d"],{"children":["__PAGE__?{\"slug\":\"spaceship-titanic\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":["projects",{"children":[["slug","spaceship-titanic","d"],{"children":["__PAGE__",{},[["$L1",["$","$L2",null,{"project":{"slug":"spaceship-titanic","title":"Spaceship Titanic","description":"Kaggle competition for predicting spaceship passenger transport. Applied data preprocessing, feature engineering, and classification models.","techStack":["Python","scikit-learn","Pandas"],"domain":"ML/Data Science","date":"2024-11","status":"completed","summary":"\n# Spaceship Titanic\n\n## Overview\nClassification challenge to predict which passengers were transported to an alternate dimension during the Spaceship Titanic's collision.\n\n## Approach\n- Data preprocessing and cleaning\n- Feature engineering from passenger attributes\n- Classification model training and evaluation\n\n## Technical Highlights\n- Exploratory data analysis\n- Feature selection and engineering\n- Model evaluation with appropriate metrics\n    ","brsContent":"$3","archContent":"$4"}}],null],null],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children","$6","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/portfolio-stefan-sutanto/_next/static/css/84c47f49352f348e.css","precedence":"next","crossOrigin":"$undefined"}]],["$","html",null,{"lang":"en","className":"dark","children":["$","body",null,{"className":"antialiased bg-neutral-950 text-neutral-200","children":["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]}]],null],null],["$L8",null]]]]
+8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Portfolio - Stefan Sutanto"}],["$","meta","3",{"name":"description","content":"Personal portfolio website"}]]
+1:null

@@ -1,0 +1,336 @@
+2:I[9569,["648","static/chunks/648-6bbcbdfb224ff41e.js","215","static/chunks/215-3f7bcdb920c31c2c.js","101","static/chunks/app/projects/%5Bslug%5D/page-f73fc23278eefa97.js"],"ProjectDetailClient"]
+5:I[4707,[],""]
+7:I[6423,[],""]
+3:T4e3,
+# Invoicing and Expense Tracker
+
+## Overview
+A comprehensive business management solution designed for small to medium enterprises, providing essential tools for invoice management, expense tracking, and financial oversight through an intuitive web interface.
+
+## Key Features
+- 📄 Invoice Management - Create, track, and manage customer invoices
+- 💰 Expense Tracking - Record and categorize business expenses
+- 📋 Bills Management - Manage vendor bills and payment schedules
+- 👥 Contact Database - Maintain customer and vendor information
+- 📊 Analytics Dashboard - Visual insights into business finances
+- 💳 Payment Tracking - Monitor accounts receivable and payable
+
+## Technical Highlights
+- RESTful API architecture with FastAPI
+- Type-safe React frontend with TypeScript
+- Interactive data visualizations with Recharts
+- Multiple transaction types (invoice, expense, payment, bill)
+- Status workflow management (draft, sent, paid, overdue)
+- Multi-currency support capability
+
+## User Value
+- Streamlines billing and collection processes
+- Improves cash flow management with payment tracking
+- Centralizes business financial data
+- Provides actionable insights through dashboard analytics
+- Reduces manual bookkeeping effort
+    4:T1e00,# Business Requirements Specification: Invoicing and Expense Tracker
+
+## 1. Executive Summary
+
+### Business Problem
+Small businesses struggle with fragmented financial management processes, using multiple tools or spreadsheets to manage invoices, expenses, and vendor relationships, leading to errors, delayed payments, and poor cash flow visibility.
+
+### Stakeholders
+- **Primary Users**: Small business owners, finance managers, accountants
+- **Secondary Users**: Sales teams, procurement staff, business consultants
+- **Technical Stakeholders**: Development team, system administrators
+
+### Success Criteria
+- Streamline invoice creation and delivery process
+- Improve expense tracking and categorization
+- Centralize customer and vendor information
+- Provide real-time visibility into cash flow
+- Reduce administrative overhead by 40%
+
+## 2. Business Context
+
+### Domain Analysis
+Small business financial management challenges:
+- **Manual Processes**: Paper-based or spreadsheet tracking is error-prone
+- **Fragmented Tools**: Using separate systems for invoices, expenses, contacts
+- **Cash Flow Gaps**: Poor visibility into receivables and payables
+- **Scalability Issues**: Processes break down as transaction volume grows
+
+### Market Opportunity
+Target market includes:
+- Small businesses (1-50 employees)
+- Freelancers and consultants
+- Service-based businesses
+- E-commerce sellers
+
+## 3. Functional Requirements
+
+### FR-001: Invoice Management
+**Description**: System shall enable creation, delivery, and tracking of customer invoices.
+
+**Features**:
+- Customizable invoice templates
+- Line item details (description, quantity, unit price)
+- Automatic calculations (subtotal, tax, total)
+- Payment terms management (Net 15, Net 30, etc.)
+- Invoice status tracking (draft, sent, paid, overdue)
+- Recurring invoice capability
+
+**Use Case**: Create and Send Invoice
+1. User selects "New Invoice"
+2. System displays invoice form
+3. User selects or creates customer contact
+4. User enters line items
+5. System calculates totals automatically
+6. User sets payment terms
+7. User saves and sends invoice
+8. System generates unique invoice number
+9. System updates customer balance
+
+**Acceptance Criteria**:
+- Invoice number format: INV-{YYMM}-{Unique ID}
+- Support for multiple line items
+- Automatic tax calculations
+- Email delivery option
+- PDF export capability
+- Payment status tracking
+
+### FR-002: Expense Management
+**Description**: System shall facilitate recording, categorizing, and tracking business expenses.
+
+**Features**:
+- Expense categorization (Office, Travel, Marketing, etc.)
+- Receipt attachment (future enhancement)
+- Employee expense submission
+- Approval workflow
+- Expense reporting and analytics
+- Tax deduction tracking
+
+**Use Case**: Record Business Expense
+1. User accesses expense form
+2. User selects expense category
+3. User enters amount and description
+4. User optionally attaches receipt
+5. User submits expense
+6. System records with unique number
+7. System updates expense reports
+
+**Acceptance Criteria**:
+- Expense categories match tax requirements
+- Receipt attachment support
+- Approval workflow for expenses above threshold
+- Date range filtering for reports
+
+### FR-003: Bills Management
+**Description**: System shall manage vendor bills and payment schedules.
+
+**Features**:
+- Vendor bill recording
+- Due date tracking
+- Payment scheduling
+- Partial payment support
+- Vendor balance tracking
+- Payment history
+
+**Acceptance Criteria**:
+- Bill number format: BILL-{YYMM}-{Unique ID}
+- Due date reminders
+- Aging reports
+- Multiple payment methods
+
+### FR-004: Contact Management
+**Description**: System shall maintain customer and vendor databases.
+
+**Contact Types**:
+- Customer (invoicing)
+- Vendor (bills)
+- Both (customer and vendor)
+
+**Information Stored**:
+- Name and company
+- Email and phone
+- Billing and shipping addresses
+- Payment terms
+- Tax ID (optional)
+
+**Acceptance Criteria**:
+- Unique email addresses
+- Contact type classification
+- Transaction history linkage
+- Search and filter capability
+
+### FR-005: Dashboard and Analytics
+**Description**: System shall provide real-time financial insights.
+
+**Dashboard Metrics**:
+- Total outstanding invoices (receivables)
+- Total unpaid bills (payables)
+- Cash flow summary
+- Monthly revenue trend
+- Top expenses by category
+- Overdue invoices alert
+
+**Visualizations**:
+- Revenue trend charts
+- Expense breakdown pie chart
+- Accounts receivable aging
+- Accounts payable aging
+
+**Acceptance Criteria**:
+- Real-time data updates
+- Interactive charts
+- Date range filtering
+- Export to CSV/PDF
+
+## 4. Non-Functional Requirements
+
+### NFR-001: Performance
+- Page load time < 3 seconds
+- Dashboard refresh < 2 seconds
+- Support up to 1,000 concurrent users
+- Handle 100,000+ transactions
+
+### NFR-002: Security
+- User authentication and authorization
+- Data encryption at rest
+- Secure API communication (HTTPS)
+- Role-based access control
+
+### NFR-003: Reliability
+- 99.9% uptime availability
+- Data backup every 6 hours
+- Transaction audit trail
+- Data integrity validation
+
+### NFR-004: Usability
+- Mobile-responsive design
+- Intuitive navigation
+- Context-sensitive help
+- Bulk operations support
+
+## 5. Data Architecture
+
+### Database Schema
+```mermaid
+erDiagram
+    CONTACT ||--o{ TRANSACTION : places
+    TRANSACTION ||--|{ TRANSACTION_ITEM : contains
+    TRANSACTION ||--o{ PAYMENT : receives
+
+    CONTACT {
+        int id PK
+        string name
+        string email UK
+        string phone
+        text address
+        string contact_type
+        datetime created_at
+    }
+
+    TRANSACTION {
+        int id PK
+        string type
+        string transaction_number UK
+        int contact_id FK
+        datetime transaction_date
+        datetime due_date
+        float subtotal
+        float tax
+        float total
+        float balance_due
+        string status
+        datetime created_at
+    }
+
+    TRANSACTION_ITEM {
+        int id PK
+        int transaction_id FK
+        string description
+        float quantity
+        float unit_price
+        float amount
+    }
+
+    PAYMENT {
+        int id PK
+        int transaction_id FK
+        datetime payment_date
+        float amount
+        string payment_method
+        string reference
+    }
+```
+
+### Transaction Types
+1. **Invoice** - Sales to customers
+2. **Expense** - Business expenses
+3. **Bill** - Vendor purchases
+4. **Payment** - Invoice/bill payments
+
+## 6. Technical Architecture
+
+### System Architecture
+```mermaid
+graph TB
+    subgraph "Presentation Layer"
+        WEB[React Web UI]
+    end
+
+    subgraph "Application Layer"
+        API[FastAPI Backend]
+        AUTH[Authentication Service]
+        VALID[Validation Service]
+    end
+
+    subgraph "Business Logic Layer"
+        INV[Invoice Service]
+        EXP[Expense Service]
+        BILL[Bill Service]
+        RPT[Report Service]
+    end
+
+    subgraph "Data Layer"
+        ORM[SQLAlchemy ORM]
+        DB[(PostgreSQL DB)]
+    end
+
+    WEB --> API
+    API --> AUTH
+    API --> VALID
+    API --> INV
+    API --> EXP
+    API --> BILL
+    API --> RPT
+    INV --> ORM
+    EXP --> ORM
+    BILL --> ORM
+    RPT --> ORM
+    ORM --> DB
+```
+
+### Technology Stack
+- **Frontend**: React 18, TypeScript, Vite, Recharts
+- **Backend**: FastAPI, Python 3.11+
+- **Database**: PostgreSQL
+- **ORM**: SQLAlchemy
+- **API Documentation**: OpenAPI/Swagger
+
+## 7. Integration Requirements
+
+### Future Integrations
+- Payment gateways (Stripe, PayPal)
+- Accounting software export (QuickBooks, Xero)
+- Email notification service
+- Receipt scanning (OCR)
+
+---
+
+**Document Version**: 1.0
+**Last Updated**: January 2025
+**Author**: Stefan Sutanto
+**Status**: Development Complete
+6:["slug","invoicing-expense-tracker","d"]
+0:["6oPFjMLNrnpiSW9iZjb4a",[[["",{"children":["projects",{"children":[["slug","invoicing-expense-tracker","d"],{"children":["__PAGE__?{\"slug\":\"invoicing-expense-tracker\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":["projects",{"children":[["slug","invoicing-expense-tracker","d"],{"children":["__PAGE__",{},[["$L1",["$","$L2",null,{"project":{"slug":"invoicing-expense-tracker","title":"Invoicing and Expense Tracker","description":"A comprehensive business management system featuring invoice creation, expense tracking, vendor bill management, and contact databases. Includes payment tracking, transaction management, and financial dashboard with real-time analytics.","techStack":["FastAPI","React","TypeScript","SQLAlchemy","PostgreSQL","Recharts"],"domain":"Full Stack","date":"2025-01","status":"completed","github":"https://github.com/stefansutanto/invoicing-expense-tracker","summary":"$3","brsContent":"$4"}}],null],null],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children","$6","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children","projects","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/portfolio-stefan-sutanto/_next/static/css/84c47f49352f348e.css","precedence":"next","crossOrigin":"$undefined"}]],["$","html",null,{"lang":"en","className":"dark","children":["$","body",null,{"className":"antialiased bg-neutral-950 text-neutral-200","children":["$","$L5",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L7",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]}]],null],null],["$L8",null]]]]
+8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Portfolio - Stefan Sutanto"}],["$","meta","3",{"name":"description","content":"Personal portfolio website"}]]
+1:null
